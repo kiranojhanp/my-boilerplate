@@ -31,148 +31,168 @@ const createContext = (opts: CreateBunContextOptions) => ({
   // Add any context you need here (user, database, etc.)
 });
 
-// Create the server using the official trpc-bun-adapter
-const server = Bun.serve(
-  createBunServeHandler(
-    {
-      router: appRouter,
-      endpoint: "/trpc",
-      createContext,
-      onError: ({ error, req }: { error: any; req: Request }) => {
-        logger.error("tRPC Error:", {
-          error: error.message,
-          code: error.code,
-          path: new URL(req.url).pathname,
-        });
-      },
-      responseMeta: () => ({
-        headers: {
-          // Security headers (helmet equivalent)
-          "X-Content-Type-Options": "nosniff",
-          "X-Frame-Options": "DENY",
-          "X-XSS-Protection": "1; mode=block",
-          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-          "Content-Security-Policy": "default-src 'self'",
-          "Referrer-Policy": "strict-origin-when-cross-origin",
-          "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
-          // CORS headers
-          "Access-Control-Allow-Origin": CORS_ORIGIN,
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Max-Age": "86400",
-        },
-      }),
+// Create the tRPC handler
+const trpcHandler = createBunServeHandler({
+  router: appRouter,
+  endpoint: "/trpc",
+  createContext,
+  onError: ({ error, req }: { error: any; req: Request }) => {
+    logger.error("tRPC Error:", {
+      error: error.message,
+      code: error.code,
+      path: new URL(req.url).pathname,
+    });
+  },
+  responseMeta: () => ({
+    headers: {
+      // CORS headers
+      "Access-Control-Allow-Origin": CORS_ORIGIN,
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Max-Age": "86400",
     },
-    {
-      port: PORT,
-      async fetch(req: Request, server: any) {
-        const url = new URL(req.url);
-        const startTime = Date.now();
+  }),
+});
 
-        try {
-          // Apply rate limiting
-          try {
-            await rateLimiter.consume(getClientIP(req));
-          } catch {
-            return new Response(
-              JSON.stringify({
-                error: "Too Many Requests",
-                message: "Rate limit exceeded",
-              }),
-              {
-                status: 429,
-                headers: { "Content-Type": "application/json" },
-              }
-            );
+// Create the Bun server
+const server = Bun.serve({
+  port: PORT,
+  async fetch(req: Request, server) {
+    const url = new URL(req.url);
+    const startTime = Date.now();
+
+    try {
+      // Apply rate limiting
+      try {
+        await rateLimiter.consume(getClientIP(req));
+      } catch {
+        return new Response(
+          JSON.stringify({
+            error: "Too Many Requests",
+            message: "Rate limit exceeded",
+          }),
+          {
+            status: 429,
+            headers: { 
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": CORS_ORIGIN,
+            },
           }
+        );
+      }
 
-          // Handle CORS preflight requests
-          if (req.method === "OPTIONS") {
-            return new Response(null, {
-              status: 204,
-              headers: {
-                "Access-Control-Allow-Origin": CORS_ORIGIN,
-                "Access-Control-Allow-Methods":
-                  "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                "Access-Control-Max-Age": "86400",
-              },
-            });
+      // Handle CORS preflight requests
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": CORS_ORIGIN,
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Max-Age": "86400",
+          },
+        });
+      }
+
+      let response: Response;
+
+      // Handle non-tRPC routes
+      if (url.pathname === "/metrics") {
+        response = await metricsMiddleware(req);
+      } else if (url.pathname === "/" || url.pathname === "/health") {
+        // Simple health check for root and /health
+        response = new Response(
+          JSON.stringify({
+            status: "healthy",
+            message: "API is running",
+            timestamp: new Date().toISOString(),
+            version: "1.0.0",
+            endpoints: {
+              trpc: "/trpc",
+              metrics: "/metrics",
+              docs: "Use tRPC client or call /trpc/[router].[procedure]",
+            },
+          }),
+          {
+            status: 200,
+            headers: { 
+              "Content-Type": "application/json",
+              // Security headers
+              "X-Content-Type-Options": "nosniff",
+              "X-Frame-Options": "DENY",
+              "X-XSS-Protection": "1; mode=block",
+              "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+              "Content-Security-Policy": "default-src 'self'",
+              "Referrer-Policy": "strict-origin-when-cross-origin",
+              "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+              "Access-Control-Allow-Origin": CORS_ORIGIN,
+            },
           }
-
-          let response: Response | undefined;
-
-          // Handle non-tRPC routes
-          if (url.pathname === "/metrics") {
-            // Keep metrics endpoint separate
-            response = await metricsMiddleware(req);
-          } else if (url.pathname === "/" || url.pathname === "/health") {
-            // Simple health check for root and /health
-            response = new Response(
-              JSON.stringify({
-                status: "healthy",
-                message: "API is running",
-                timestamp: new Date().toISOString(),
-                version: "1.0.0",
-                endpoints: {
-                  trpc: "/trpc",
-                  metrics: "/metrics",
-                  docs: "Use tRPC client or call /trpc/[router].[procedure]",
-                },
-              }),
-              {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-              }
-            );
-          } else {
-            // For tRPC routes, let the adapter handle them
-            // This will be handled by the tRPC adapter automatically
-            return new Response("Not Found", { status: 404 });
+        );
+      } else if (url.pathname.startsWith("/trpc")) {
+        // Handle tRPC requests
+        response = await trpcHandler.fetch(req, server) || new Response("Internal Error", { status: 500 });
+      } else {
+        // 404 for other routes
+        response = new Response(
+          JSON.stringify({
+            error: "Not Found",
+            message: "The requested resource was not found",
+            availableEndpoints: {
+              health: "/health",
+              trpc: "/trpc",
+              metrics: "/metrics",
+            },
+          }),
+          {
+            status: 404,
+            headers: { 
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": CORS_ORIGIN,
+            },
           }
+        );
+      }
 
-          // Log request for non-tRPC routes
-          if (response) {
-            const duration = Date.now() - startTime;
-            logger.info(
-              `${req.method} ${url.pathname} ${response.status} ${duration}ms`,
-              {
-                method: req.method,
-                path: url.pathname,
-                status: response.status,
-                duration,
-                ip: getClientIP(req),
-                userAgent: req.headers.get("user-agent"),
-              }
-            );
-          }
-
-          return response;
-        } catch (error) {
-          logger.error("Server error:", error);
-
-          return new Response(
-            JSON.stringify({
-              error: "Internal Server Error",
-              message:
-                NODE_ENV === "development"
-                  ? String(error)
-                  : "Something went wrong",
-            }),
-            {
-              status: 500,
-              headers: {
-                "Content-Type": "application/json",
-                "X-Content-Type-Options": "nosniff",
-                "X-Frame-Options": "DENY",
-              },
-            }
-          );
+      // Log request
+      const duration = Date.now() - startTime;
+      logger.info(
+        `${req.method} ${url.pathname} ${response.status} ${duration}ms`,
+        {
+          method: req.method,
+          path: url.pathname,
+          status: response.status,
+          duration,
+          ip: getClientIP(req),
+          userAgent: req.headers.get("user-agent"),
         }
-      },
+      );
+
+      return response;
+    } catch (error) {
+      logger.error("Server error:", error);
+
+      return new Response(
+        JSON.stringify({
+          error: "Internal Server Error",
+          message:
+            NODE_ENV === "development"
+              ? String(error)
+              : "Something went wrong",
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": CORS_ORIGIN,
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+          },
+        }
+      );
     }
-  )
-);
+  },
+});
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
