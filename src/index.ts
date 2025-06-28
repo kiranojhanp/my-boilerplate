@@ -4,6 +4,7 @@ import { logger } from "./utils/logger";
 import { appRouter } from "./trpc/router";
 import { createBunServeHandler } from "trpc-bun-adapter";
 import type { CreateBunContextOptions } from "trpc-bun-adapter";
+import type { Context } from "./trpc/trpc";
 
 // Environment variables with defaults
 const PORT = parseInt(process.env.PORT || "3000");
@@ -26,9 +27,8 @@ function getClientIP(req: Request): string {
 }
 
 // Create context for tRPC
-const createContext = (opts: CreateBunContextOptions) => ({
+const createContext = (opts: CreateBunContextOptions): Context => ({
   req: opts.req,
-  // Add any context you need here (user, database, etc.)
 });
 
 // Create the tRPC handler
@@ -73,7 +73,7 @@ const server = Bun.serve({
           }),
           {
             status: 429,
-            headers: { 
+            headers: {
               "Content-Type": "application/json",
               "Access-Control-Allow-Origin": CORS_ORIGIN,
             },
@@ -115,13 +115,14 @@ const server = Bun.serve({
           }),
           {
             status: 200,
-            headers: { 
+            headers: {
               "Content-Type": "application/json",
               // Security headers
               "X-Content-Type-Options": "nosniff",
               "X-Frame-Options": "DENY",
               "X-XSS-Protection": "1; mode=block",
-              "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+              "Strict-Transport-Security":
+                "max-age=31536000; includeSubDomains",
               "Content-Security-Policy": "default-src 'self'",
               "Referrer-Policy": "strict-origin-when-cross-origin",
               "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
@@ -131,7 +132,9 @@ const server = Bun.serve({
         );
       } else if (url.pathname.startsWith("/trpc")) {
         // Handle tRPC requests
-        response = await trpcHandler.fetch(req, server) || new Response("Internal Error", { status: 500 });
+        response =
+          (await trpcHandler.fetch(req, server)) ||
+          new Response("Internal Error", { status: 500 });
       } else {
         // 404 for other routes
         response = new Response(
@@ -146,7 +149,7 @@ const server = Bun.serve({
           }),
           {
             status: 404,
-            headers: { 
+            headers: {
               "Content-Type": "application/json",
               "Access-Control-Allow-Origin": CORS_ORIGIN,
             },
@@ -176,9 +179,7 @@ const server = Bun.serve({
         JSON.stringify({
           error: "Internal Server Error",
           message:
-            NODE_ENV === "development"
-              ? String(error)
-              : "Something went wrong",
+            NODE_ENV === "development" ? String(error) : "Something went wrong",
         }),
         {
           status: 500,
@@ -212,11 +213,32 @@ logger.info(`📊 Metrics available at http://localhost:${PORT}/metrics`);
 logger.info(`🔍 Health check at http://localhost:${PORT}/health`);
 logger.info(`⚡ tRPC API at http://localhost:${PORT}/trpc`);
 logger.info(`📚 Available procedures:`);
-logger.info(`   - GET  /trpc/hello.hello`);
-logger.info(`   - GET  /trpc/hello.helloName?input={"name":"World"}`);
-logger.info(`   - POST /trpc/hello.customHello`);
-logger.info(`   - GET  /trpc/health.check`);
-logger.info(`   - GET  /trpc/health.ready`);
-logger.info(`   - GET  /trpc/health.live`);
+logger.info(`   Hello Router:`);
+logger.info(`     - GET  /trpc/hello.hello`);
+logger.info(`     - GET  /trpc/hello.helloName?input={"name":"World"}`);
+logger.info(`     - POST /trpc/hello.customHello`);
+logger.info(`     - GET  /trpc/hello.protectedHello (requires auth)`);
+logger.info(`     - GET  /trpc/hello.complexData`);
+logger.info(`   Health Router:`);
+logger.info(`     - GET  /trpc/health.check`);
+logger.info(`     - GET  /trpc/health.ready`);
+logger.info(`     - GET  /trpc/health.live`);
+logger.info(`   Auth Router:`);
+logger.info(`     - POST /trpc/auth.register`);
+logger.info(`     - POST /trpc/auth.login`);
+logger.info(`     - POST /trpc/auth.refresh`);
+logger.info(`     - GET  /trpc/auth.me (requires auth)`);
+logger.info(`     - POST /trpc/auth.updateProfile (requires auth)`);
+logger.info(`     - POST /trpc/auth.changePassword (requires auth)`);
+logger.info(`     - POST /trpc/auth.deleteAccount (requires auth)`);
+logger.info(`   Validation Router:`);
+logger.info(`     - POST /trpc/validation.validateComplexUser`);
+logger.info(`     - POST /trpc/validation.validateFileUpload (requires auth)`);
+logger.info(`     - GET  /trpc/validation.validateSearch`);
+logger.info(`     - POST /trpc/validation.validateBatchData`);
+logger.info(`     - GET  /trpc/validation.validateComplexTypes`);
+logger.info(
+  `💡 Features: SuperJSON, Zod validation, Bun password hashing, JWT auth, Advanced validation`
+);
 
 export default server;
