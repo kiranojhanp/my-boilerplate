@@ -1,76 +1,23 @@
-import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, loggedProcedure, protectedProcedure } from "../trpc";
 import {
-  userStore,
-  generateTokens,
-  verifyToken,
-  getUserFromToken,
-} from "../../utils/auth";
-
-// Validation schemas
-const registerSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be at most 20 characters")
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscores"
-    ),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^A-Za-z0-9]/,
-      "Password must contain at least one special character"
-    ),
-});
-
-const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(1, "Password is required"),
-});
-
-const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, "Refresh token is required"),
-});
-
-const updateProfileSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be at most 20 characters")
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscores"
-    )
-    .optional(),
-  email: z.string().email("Invalid email format").optional(),
-});
-
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^A-Za-z0-9]/,
-      "Password must contain at least one special character"
-    ),
-});
+  router,
+  loggedProcedure,
+  protectedProcedure,
+} from "../../shared/trpc/trpc";
+import {
+  RegisterInputSchema,
+  LoginInputSchema,
+  RefreshTokenInputSchema,
+  UpdateProfileInputSchema,
+  ChangePasswordInputSchema,
+  DeleteAccountInputSchema,
+} from "./schemas";
+import { userStore, generateTokens, verifyToken } from "./service";
 
 export const authRouter = router({
   // Register a new user
   register: loggedProcedure
-    .input(registerSchema)
+    .input(RegisterInputSchema)
     .mutation(async ({ input }) => {
       try {
         const user = await userStore.createUser(
@@ -107,7 +54,7 @@ export const authRouter = router({
     }),
 
   // Login with email and password
-  login: loggedProcedure.input(loginSchema).mutation(async ({ input }) => {
+  login: loggedProcedure.input(LoginInputSchema).mutation(async ({ input }) => {
     // Check if account is locked
     if (userStore.isAccountLocked(input.email)) {
       throw new TRPCError({
@@ -162,7 +109,7 @@ export const authRouter = router({
 
   // Refresh access token
   refresh: loggedProcedure
-    .input(refreshTokenSchema)
+    .input(RefreshTokenInputSchema)
     .mutation(async ({ input }) => {
       try {
         const payload = verifyToken(input.refreshToken);
@@ -211,7 +158,7 @@ export const authRouter = router({
 
   // Update user profile
   updateProfile: protectedProcedure
-    .input(updateProfileSchema)
+    .input(UpdateProfileInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.auth;
 
@@ -251,7 +198,7 @@ export const authRouter = router({
 
   // Change password
   changePassword: protectedProcedure
-    .input(changePasswordSchema)
+    .input(ChangePasswordInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.auth;
 
@@ -292,13 +239,7 @@ export const authRouter = router({
 
   // Delete user account
   deleteAccount: protectedProcedure
-    .input(
-      z.object({
-        password: z
-          .string()
-          .min(1, "Password is required for account deletion"),
-      })
-    )
+    .input(DeleteAccountInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.auth;
 

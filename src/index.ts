@@ -1,10 +1,10 @@
-import { setupRateLimiting } from "./middleware/rateLimiter";
-import { setupMetrics, metricsMiddleware } from "./middleware/metrics";
-import { logger } from "./utils/logger";
+import { setupRateLimiting } from "./shared/middleware/rateLimiter";
+import { setupMetrics, metricsMiddleware } from "./shared/middleware/metrics";
+import { logger } from "./shared/utils/logger";
 import { appRouter } from "./trpc/router";
 import { createBunServeHandler } from "trpc-bun-adapter";
 import type { CreateBunContextOptions } from "trpc-bun-adapter";
-import type { Context } from "./trpc/trpc";
+import type { Context } from "./shared/trpc/trpc";
 
 // Environment variables with defaults
 const PORT = parseInt(process.env.PORT || "3000");
@@ -237,8 +237,19 @@ logger.info(`     - POST /trpc/validation.validateFileUpload (requires auth)`);
 logger.info(`     - GET  /trpc/validation.validateSearch`);
 logger.info(`     - POST /trpc/validation.validateBatchData`);
 logger.info(`     - GET  /trpc/validation.validateComplexTypes`);
+logger.info(`   Todo Router:`);
+logger.info(`     - POST /trpc/todo.create (requires auth)`);
+logger.info(`     - GET  /trpc/todo.getById (requires auth)`);
+logger.info(`     - GET  /trpc/todo.list (requires auth)`);
+logger.info(`     - POST /trpc/todo.update (requires auth)`);
+logger.info(`     - POST /trpc/todo.delete (requires auth)`);
+logger.info(`     - POST /trpc/todo.addSubtask (requires auth)`);
+logger.info(`     - POST /trpc/todo.updateSubtask (requires auth)`);
+logger.info(`     - POST /trpc/todo.deleteSubtask (requires auth)`);
+logger.info(`     - GET  /trpc/todo.getStats (requires auth)`);
+logger.info(`     - POST /trpc/todo.bulkUpdate (requires auth)`);
 logger.info(
-  `💡 Features: SuperJSON, Zod validation, Bun password hashing, JWT auth, Advanced validation`
+  `💡 Features: SuperJSON, Zod validation, Bun password hashing, JWT auth, Advanced validation, Todo management`
 );
 
 export default server;

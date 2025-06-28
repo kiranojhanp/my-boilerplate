@@ -12,6 +12,7 @@
     "test": "bun test",
     "test:api": "bun run test-api.ts",
     "test:enhanced": "bun run enhanced-test.ts",
+    "test:todo": "bun run test-todo.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "docker:build": "docker build -t basic-api .",

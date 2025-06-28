@@ -1,8 +1,7 @@
-import { router, loggedProcedure } from "../trpc";
+import type { HealthCheck, ReadinessCheck, LivenessCheck } from "./schemas";
 
-export const healthRouter = router({
-  // Basic health check
-  check: loggedProcedure.query(() => {
+export class HealthService {
+  static getHealthCheck(): HealthCheck {
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();
 
@@ -19,10 +18,9 @@ export const healthRouter = router({
         external: Math.round(memoryUsage.external / 1024 / 1024),
       },
     };
-  }),
+  }
 
-  // Readiness check (for Kubernetes)
-  ready: loggedProcedure.query(() => {
+  static getReadinessCheck(): ReadinessCheck {
     // Add any readiness checks here (database connections, etc.)
     return {
       status: "ready",
@@ -32,13 +30,12 @@ export const healthRouter = router({
         cache: "ok", // Placeholder - implement actual cache check
       },
     };
-  }),
+  }
 
-  // Liveness check (for Kubernetes)
-  live: loggedProcedure.query(() => {
+  static getLivenessCheck(): LivenessCheck {
     return {
       status: "alive",
       timestamp: new Date().toISOString(),
     };
-  }),
-});
+  }
+}

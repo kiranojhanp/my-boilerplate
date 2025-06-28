@@ -75,7 +75,20 @@ Key variables:
 - `POST /trpc/auth.changePassword` - Change password (requires auth)
 - `POST /trpc/auth.deleteAccount` - Delete account (requires auth)
 
-#### 👋 Hello Endpoints (`/trpc/hello.*`)
+#### � Todo Management (`/trpc/todo.*`)
+
+- `POST /trpc/todo.create` - Create new todo (requires auth)
+- `GET /trpc/todo.getById` - Get todo by ID (requires auth)
+- `GET /trpc/todo.list` - List todos with filtering/sorting (requires auth)
+- `POST /trpc/todo.update` - Update todo (requires auth)
+- `POST /trpc/todo.delete` - Delete todo (requires auth)
+- `POST /trpc/todo.addSubtask` - Add subtask (requires auth)
+- `POST /trpc/todo.updateSubtask` - Update subtask (requires auth)
+- `POST /trpc/todo.deleteSubtask` - Delete subtask (requires auth)
+- `GET /trpc/todo.getStats` - Get todo statistics (requires auth)
+- `POST /trpc/todo.bulkUpdate` - Bulk update todos (requires auth)
+
+#### �👋 Hello Endpoints (`/trpc/hello.*`)
 
 - `GET /trpc/hello.hello` - Simple hello world
 - `GET /trpc/hello.helloName` - Personalized greeting
@@ -138,6 +151,9 @@ bun run test-api.ts
 
 # Or run enhanced feature tests
 bun run test:enhanced
+
+# Or run todo API tests
+bun run test:todo
 ```
 
 The test suite covers:
@@ -153,6 +169,10 @@ The test suite covers:
 - ✅ Complex search filtering
 - ✅ Password strength analysis
 - ✅ Bun crypto utilities
+- ✅ Todo CRUD operations
+- ✅ Subtask management
+- ✅ Todo statistics and analytics
+- ✅ Bulk operations
 - ✅ Error handling
 
 ## 🛠️ Technology Stack
