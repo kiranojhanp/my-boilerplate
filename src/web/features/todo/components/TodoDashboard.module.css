@@ -1,0 +1,117 @@
+/* TodoDashboard styles */
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.filtersSection {
+    flex: 1;
+}
+
+.addButton {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.addButton:hover {
+    background: #229954;
+    transform: translateY(-1px);
+}
+
+.addButton.cancel {
+    background: #e74c3c;
+}
+
+.addButton.cancel:hover {
+    background: #c0392b;
+}
+
+.todosList {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #718096;
+}
+
+.emptyStateIcon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.emptyStateTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #4a5568;
+}
+
+.emptyStateText {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #718096;
+    font-size: 1.1rem;
+}
+
+.loadingSpinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #4299e1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        padding: 12px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .addButton {
+        order: -1;
+        margin-bottom: 16px;
+    }
+}

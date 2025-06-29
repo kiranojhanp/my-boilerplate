@@ -21,6 +21,14 @@ const trpcHandler = createBunServeHandler(
         return new Response(Bun.file("./dist/app.js"));
       }
 
+      if (url.pathname === "/app.css") {
+        return new Response(Bun.file("./dist/app.css"), {
+          headers: {
+            "Content-Type": "text/css",
+          },
+        });
+      }
+
       if (url.pathname === "/") {
         return new Response(Bun.file("./src/web/index.html"));
       }

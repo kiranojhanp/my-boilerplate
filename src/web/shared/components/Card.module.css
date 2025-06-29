@@ -1,0 +1,87 @@
+/* Card styles */
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8f9fa;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.content {
+    padding: 20px;
+}
+
+.footer {
+    padding: 12px 20px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Card variants */
+.bordered {
+    border-width: 2px;
+}
+
+.elevated {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.elevated:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.flat {
+    border: none;
+    box-shadow: none;
+}
+
+.flat:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Size variants */
+.compact .header {
+    padding: 12px 16px;
+}
+
+.compact .content {
+    padding: 16px;
+}
+
+.compact .footer {
+    padding: 8px 16px;
+}
+
+.spacious .header {
+    padding: 24px 28px;
+}
+
+.spacious .content {
+    padding: 28px;
+}
+
+.spacious .footer {
+    padding: 16px 28px;
+}
