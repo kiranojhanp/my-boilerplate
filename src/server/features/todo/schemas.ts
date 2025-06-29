@@ -23,7 +23,7 @@ export const TodoCategory = z.enum([
 
 // SubTask schema
 export const SubTaskSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1, "Invalid subtask ID"),
   title: z.string().min(1).max(100),
   completed: z.boolean(),
   createdAt: z.date(),
@@ -31,7 +31,7 @@ export const SubTaskSchema = z.object({
 
 // Base Todo schema
 export const TodoSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1, "Invalid todo ID"),
   title: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
   priority: TodoPriority,
@@ -102,7 +102,7 @@ export const CreateTodoInputSchema = z.object({
 
 // Input schemas for update operations
 export const UpdateTodoInputSchema = z.object({
-  id: z.string().uuid("Invalid todo ID"),
+  id: z.string().min(1, "Invalid todo ID"),
 
   title: z
     .string()
@@ -206,35 +206,35 @@ export const ListTodosInputSchema = z
 
 // Subtask operation schemas
 export const CreateSubtaskInputOnTodoSchema = z.object({
-  todoId: z.string().uuid("Invalid todo ID"),
+  todoId: z.string().min(1, "Invalid todo ID"),
   title: z.string().min(1).max(100),
 });
 
 export const UpdateSubtaskInputSchema = z.object({
-  todoId: z.string().uuid("Invalid todo ID"),
-  subtaskId: z.string().uuid("Invalid subtask ID"),
+  todoId: z.string().min(1, "Invalid todo ID"),
+  subtaskId: z.string().min(1, "Invalid subtask ID"),
   title: z.string().min(1).max(100).optional(),
   completed: z.boolean().optional(),
 });
 
 export const DeleteSubtaskInputSchema = z.object({
-  todoId: z.string().uuid("Invalid todo ID"),
-  subtaskId: z.string().uuid("Invalid subtask ID"),
+  todoId: z.string().min(1, "Invalid todo ID"),
+  subtaskId: z.string().min(1, "Invalid subtask ID"),
 });
 
 // ID-only schemas
 export const TodoIdSchema = z.object({
-  id: z.string().uuid("Invalid todo ID"),
+  id: z.string().min(1, "Invalid todo ID"),
 });
 
 // Bulk operation schemas
 export const BulkUpdateStatusSchema = z.object({
-  ids: z.array(z.string().uuid()).min(1).max(50),
+  ids: z.array(z.string().min(1)).min(1).max(50),
   status: TodoStatus,
 });
 
 export const BulkDeleteSchema = z.object({
-  ids: z.array(z.string().uuid()).min(1).max(50),
+  ids: z.array(z.string().min(1)).min(1).max(50),
 });
 
 // Statistics schema
@@ -259,7 +259,7 @@ export const GetTodoByIdInputSchema = TodoIdSchema;
 export const DeleteTodoInputSchema = TodoIdSchema;
 
 export const ToggleTodoStatusInputSchema = z.object({
-  id: z.string().uuid("Invalid todo ID"),
+  id: z.string().min(1, "Invalid todo ID"),
   status: TodoStatus.optional(), // If not provided, toggle between completed/pending
 });
 
