@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback } from "react";
 import styles from "./styles.module.css";
 import { Button, Badge } from "../../../../shared/components";
 import { useUpdateTodo, useDeleteTodo } from "../../hooks/useTodos";
@@ -9,23 +9,34 @@ interface TodoCardProps {
   onEdit: (todo: Todo) => void;
 }
 
-export const TodoCard: React.FC<TodoCardProps> = ({ todo, onEdit }) => {
+const TodoCard: React.FC<TodoCardProps> = memo(({ todo, onEdit }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
 
-  const handleStatusChange = (newStatus: TodoStatus) => {
-    updateTodo.mutate({
-      id: todo.id,
-      status: newStatus,
-    });
-  };
+  const handleStatusChange = useCallback(
+    (newStatus: TodoStatus) => {
+      updateTodo.mutate({
+        id: todo.id,
+        status: newStatus,
+      });
+    },
+    [todo.id, updateTodo]
+  );
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (confirm("Are you sure you want to delete this todo?")) {
       deleteTodo.mutate({ id: todo.id });
     }
-  };
+  }, [todo.id, deleteTodo]);
+
+  const handleEdit = useCallback(() => {
+    onEdit(todo);
+  }, [todo, onEdit]);
+
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   const priorityColors = {
     low: "success",
@@ -110,13 +121,13 @@ export const TodoCard: React.FC<TodoCardProps> = ({ todo, onEdit }) => {
             variant="secondary"
             size="small"
             iconOnly
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={toggleExpanded}
             title={isExpanded ? "Collapse" : "Expand"}
           >
             {isExpanded ? "▼" : "▶"}
           </Button>
 
-          <Button variant="info" size="small" onClick={() => onEdit(todo)}>
+          <Button variant="info" size="small" onClick={handleEdit}>
             Edit
           </Button>
 
@@ -189,7 +200,9 @@ export const TodoCard: React.FC<TodoCardProps> = ({ todo, onEdit }) => {
       )}
     </div>
   );
-};
+});
+
+TodoCard.displayName = "TodoCard";
 
 function getStatusColor(status: TodoStatus): string {
   const colors = {
@@ -200,3 +213,5 @@ function getStatusColor(status: TodoStatus): string {
   };
   return colors[status];
 }
+
+export { TodoCard };

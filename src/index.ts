@@ -17,20 +17,56 @@ const trpcHandler = createBunServeHandler(
     async fetch(request, server) {
       const url = new URL(request.url);
 
-      if (url.pathname === "/app.js") {
-        return new Response(Bun.file("./dist/app.js"));
-      }
-
-      if (url.pathname === "/app.css") {
-        return new Response(Bun.file("./dist/app.css"), {
+      // Serve the main HTML file
+      if (url.pathname === "/") {
+        return new Response(Bun.file("./src/web/index.html"), {
           headers: {
-            "Content-Type": "text/css",
+            "Content-Type": "text/html",
           },
         });
       }
 
-      if (url.pathname === "/") {
-        return new Response(Bun.file("./src/web/index.html"));
+      // Serve JavaScript files from dist directory
+      if (url.pathname.endsWith(".js")) {
+        const filePath = `./dist${url.pathname}`;
+        try {
+          return new Response(Bun.file(filePath), {
+            headers: {
+              "Content-Type": "application/javascript",
+            },
+          });
+        } catch (error) {
+          return new Response("JS file not found", { status: 404 });
+        }
+      }
+
+      // Serve CSS files from dist directory
+      if (url.pathname.endsWith(".css")) {
+        const filePath = `./dist${url.pathname}`;
+        try {
+          return new Response(Bun.file(filePath), {
+            headers: {
+              "Content-Type": "text/css",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        } catch (error) {
+          return new Response("CSS file not found", { status: 404 });
+        }
+      }
+
+      // Serve source maps
+      if (url.pathname.endsWith(".js.map")) {
+        const filePath = `./dist${url.pathname}`;
+        try {
+          return new Response(Bun.file(filePath), {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        } catch (error) {
+          return new Response("Source map not found", { status: 404 });
+        }
       }
 
       return new Response("Not found", { status: 404 });
@@ -39,7 +75,7 @@ const trpcHandler = createBunServeHandler(
 );
 
 logger.info("Building client...");
-Bun.spawnSync(["bun", "build:client"]);
+Bun.spawnSync(["bun", "run", "build:web"]);
 
 // Start server
 const server = Bun.serve(trpcHandler);

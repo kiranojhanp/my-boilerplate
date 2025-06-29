@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import styles from "./styles.module.css";
 import { TodoHeader } from "../TodoHeader";
 import { TodoFiltersComponent } from "../TodoFilters";
-import { TodoForm } from "../TodoForm";
 import { TodoCard } from "../TodoCard";
-import { Modal } from "../../../../shared/components";
+import { Modal } from "../../../../shared/components/Modal";
+import { TodoForm } from "../TodoForm";
+import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
 import { useTodos } from "../../hooks/useTodos";
 import type { TodoFilters, Todo } from "../../../../shared/types";
 
-export const TodoDashboard: React.FC = () => {
+const TodoDashboard: React.FC = memo(() => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [filters, setFilters] = useState<TodoFilters>({});
@@ -62,8 +63,12 @@ export const TodoDashboard: React.FC = () => {
       <div className={styles.todosList}>
         {isLoading ? (
           <div className={styles.loading}>
-            <div className={styles.loadingSpinner}></div>
-            Loading todos...
+            <LoadingSpinner
+              size="large"
+              text="Loading todos..."
+              isLoading={isLoading}
+              minDisplayTime={500}
+            />
           </div>
         ) : !todosData?.todos.length ? (
           <div className={styles.emptyState}>
@@ -86,20 +91,24 @@ export const TodoDashboard: React.FC = () => {
         )}
       </div>
 
-      <Modal
-        isOpen={!!editingTodo}
-        onClose={() => setEditingTodo(null)}
-        title="Edit Todo"
-        size="large"
-      >
-        {editingTodo && (
+      {!!editingTodo && (
+        <Modal
+          isOpen={!!editingTodo}
+          onClose={() => setEditingTodo(null)}
+          title="Edit Todo"
+          size="large"
+        >
           <TodoForm
             todo={editingTodo}
             onSuccess={handleTodoUpdated}
             onCancel={() => setEditingTodo(null)}
           />
-        )}
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
-};
+});
+
+TodoDashboard.displayName = "TodoDashboard";
+
+export { TodoDashboard };
