@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import styles from "./TodoDashboard.module.css";
-import { TodoHeader } from "./TodoHeader";
-import { TodoFiltersComponent } from "./TodoFilters";
-import { TodoForm } from "./TodoForm";
-import { TodoCard } from "./TodoCard";
-import { Modal } from "../../../shared/components";
-import { useTodos } from "../hooks/useTodos";
-import type { TodoFilters, Todo } from "../../../shared/types/todo";
+import styles from "./styles.module.css";
+import { TodoHeader } from "../TodoHeader";
+import { TodoFiltersComponent } from "../TodoFilters";
+import { TodoForm } from "../TodoForm";
+import { TodoCard } from "../TodoCard";
+import { Modal } from "../../../../shared/components";
+import { useTodos } from "../../hooks/useTodos";
+import type { TodoFilters, Todo } from "../../../../shared/types";
 
 export const TodoDashboard: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);

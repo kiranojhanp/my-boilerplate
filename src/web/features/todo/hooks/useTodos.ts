@@ -1,9 +1,9 @@
 import { trpc } from "../../../shared/lib/trpc";
 import type {
   TodoFilters,
-  CreateTodoData,
-  UpdateTodoData,
-} from "../../../shared/types/todo";
+  CreateTodoInput,
+  UpdateTodoInput,
+} from "../../../shared/types";
 
 export function useTodos(filters: TodoFilters = {}) {
   return trpc.todo.list.useQuery({

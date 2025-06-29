@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import styles from "./TodoForm.module.css";
-import { Button, Input, Textarea, Select } from "../../../shared/components";
-import { useCreateTodo, useUpdateTodo } from "../hooks/useTodos";
+import styles from "./styles.module.css";
+import { Button, Input, Textarea, Select } from "../../../../shared/components";
+import { useCreateTodo, useUpdateTodo } from "../../hooks/useTodos";
 import type {
   Todo,
   TodoPriority,
   TodoCategory,
-  CreateTodoData,
-  UpdateTodoData,
-} from "../../../shared/types/todo";
+  CreateTodoInput,
+  UpdateTodoInput,
+} from "../../../../shared/types";
 
 interface TodoFormProps {
   todo?: Todo;
@@ -80,7 +80,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
       .filter((tag) => tag.length > 0);
 
     if (isEditing) {
-      const updateData: UpdateTodoData = {
+      const updateData: UpdateTodoInput = {
         id: todo.id,
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
@@ -112,7 +112,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         .filter((subtask) => subtask.trim().length > 0)
         .map((title) => ({ title: title.trim() }));
 
-      const createData: CreateTodoData = {
+      const createData: CreateTodoInput = {
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
         priority: formData.priority,

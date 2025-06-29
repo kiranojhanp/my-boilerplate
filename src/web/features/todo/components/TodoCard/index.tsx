@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import styles from "./TodoCard.module.css";
-import { Button, Badge } from "../../../shared/components";
-import { useUpdateTodo, useDeleteTodo } from "../hooks/useTodos";
-import type { Todo, TodoStatus } from "../../../shared/types/todo";
+import styles from "./styles.module.css";
+import { Button, Badge } from "../../../../shared/components";
+import { useUpdateTodo, useDeleteTodo } from "../../hooks/useTodos";
+import type { Todo, TodoStatus } from "../../../../shared/types";
 
 interface TodoCardProps {
   todo: Todo;

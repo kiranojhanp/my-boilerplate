@@ -1,11 +1,11 @@
 import React from "react";
-import styles from "./TodoFilters.module.css";
+import styles from "./styles.module.css";
 import type {
   TodoFilters,
   TodoStatus,
   TodoPriority,
   TodoCategory,
-} from "../../../shared/types/todo";
+} from "../../../../shared/types";
 
 interface TodoFiltersProps {
   filters: TodoFilters;

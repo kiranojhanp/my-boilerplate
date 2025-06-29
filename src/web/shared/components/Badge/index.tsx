@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./Badge.module.css";
+import styles from "./styles.module.css";
 
 interface BadgeProps {
   variant?: "primary" | "secondary" | "success" | "danger" | "warning" | "info";

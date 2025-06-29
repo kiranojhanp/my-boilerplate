@@ -1,6 +1,6 @@
 import React from "react";
-import styles from "./TodoHeader.module.css";
-import { useTodoStats } from "../hooks/useTodos";
+import styles from "./styles.module.css";
+import { useTodoStats } from "../../hooks/useTodos";
 
 interface StatCardProps {
   label: string;
