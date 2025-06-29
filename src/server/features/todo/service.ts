@@ -357,4 +357,57 @@ export class TodoService {
       byCategory,
     };
   }
+
+  static async updateSubtask(data: {
+    subtaskId: string;
+    todoId: string;
+    completed?: boolean;
+    title?: string;
+  }): Promise<Subtask | null> {
+    // First verify the subtask exists and belongs to the todo
+    const existingSubtask = await db.query.subtasks.findFirst({
+      where: and(
+        eq(subtasks.id, data.subtaskId),
+        eq(subtasks.todoId, data.todoId)
+      ),
+    });
+
+    if (!existingSubtask) {
+      return null;
+    }
+
+    // Prepare update data
+    const updateData: Partial<NewSubtask> = {
+      updatedAt: new Date(),
+    };
+
+    if (data.completed !== undefined) {
+      updateData.completed = data.completed;
+      updateData.completedAt = data.completed ? new Date() : null;
+    }
+
+    if (data.title !== undefined) {
+      updateData.title = data.title;
+    }
+
+    // Update the subtask
+    const updatedSubtasks = await db
+      .update(subtasks)
+      .set(updateData)
+      .where(eq(subtasks.id, data.subtaskId))
+      .returning();
+
+    const updatedSubtask = updatedSubtasks[0];
+    if (!updatedSubtask) {
+      throw new Error("Failed to update subtask");
+    }
+
+    logger.info(`Subtask updated: ${updatedSubtask.title}`, {
+      subtaskId: data.subtaskId,
+      todoId: data.todoId,
+      completed: updatedSubtask.completed,
+    });
+
+    return updatedSubtask;
+  }
 }

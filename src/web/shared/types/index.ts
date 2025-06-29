@@ -22,6 +22,7 @@ export type CreateTodoInput = RouterInputs["todo"]["create"];
 export type UpdateTodoInput = RouterInputs["todo"]["update"];
 export type DeleteTodoInput = RouterInputs["todo"]["delete"];
 export type ListTodosInput = RouterInputs["todo"]["list"];
+export type UpdateSubtaskInput = RouterInputs["todo"]["updateSubtask"];
 
 // Extract enum types from Zod schemas
 export type TodoPriority = z.infer<typeof TodoPrioritySchema>;

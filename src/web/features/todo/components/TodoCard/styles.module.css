@@ -148,6 +148,26 @@
     border-radius: 4px;
 }
 
+.subtaskToggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease;
+}
+
+.subtaskToggle:hover {
+    transform: scale(1.1);
+}
+
+.subtaskToggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .subtaskIcon {
     font-size: 0.8rem;
 }

@@ -1,7 +1,11 @@
 import React, { useState, memo, useCallback } from "react";
 import styles from "./styles.module.css";
 import { Button, Badge } from "../../../../shared/components";
-import { useUpdateTodo, useDeleteTodo } from "../../hooks/useTodos";
+import {
+  useUpdateTodo,
+  useDeleteTodo,
+  useUpdateSubtask,
+} from "../../hooks/useTodos";
 import type { Todo, TodoStatus } from "../../../../shared/types";
 
 interface TodoCardProps {
@@ -13,6 +17,7 @@ const TodoCard: React.FC<TodoCardProps> = memo(({ todo, onEdit }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
+  const updateSubtask = useUpdateSubtask();
 
   const handleStatusChange = useCallback(
     (newStatus: TodoStatus) => {
@@ -22,6 +27,17 @@ const TodoCard: React.FC<TodoCardProps> = memo(({ todo, onEdit }) => {
       });
     },
     [todo.id, updateTodo]
+  );
+
+  const handleSubtaskToggle = useCallback(
+    (subtaskId: string, completed: boolean) => {
+      updateSubtask.mutate({
+        subtaskId,
+        todoId: todo.id,
+        completed: !completed,
+      });
+    },
+    [todo.id, updateSubtask]
   );
 
   const handleDelete = useCallback(() => {
@@ -175,9 +191,22 @@ const TodoCard: React.FC<TodoCardProps> = memo(({ todo, onEdit }) => {
           <div className={styles.subtasksList}>
             {todo.subtasks.map((subtask) => (
               <div key={subtask.id} className={styles.subtask}>
-                <span className={styles.subtaskIcon}>
-                  {subtask.completed ? "✅" : "⚪"}
-                </span>
+                <button
+                  className={styles.subtaskToggle}
+                  onClick={() =>
+                    handleSubtaskToggle(subtask.id, subtask.completed)
+                  }
+                  disabled={updateSubtask.isPending}
+                  title={
+                    subtask.completed
+                      ? "Mark as incomplete"
+                      : "Mark as complete"
+                  }
+                >
+                  <span className={styles.subtaskIcon}>
+                    {subtask.completed ? "✅" : "⚪"}
+                  </span>
+                </button>
                 <span
                   className={`${styles.subtaskTitle} ${subtask.completed ? styles.subtaskCompleted : ""}`}
                 >

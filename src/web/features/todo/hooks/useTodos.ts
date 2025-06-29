@@ -55,3 +55,14 @@ export function useDeleteTodo() {
     },
   });
 }
+
+export function useUpdateSubtask() {
+  const utils = trpc.useUtils();
+
+  return trpc.todo.updateSubtask.useMutation({
+    onSuccess: () => {
+      utils.todo.list.invalidate();
+      utils.todo.getStats.invalidate();
+    },
+  });
+}

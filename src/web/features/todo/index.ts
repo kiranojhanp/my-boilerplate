@@ -11,4 +11,5 @@ export {
   useCreateTodo,
   useUpdateTodo,
   useDeleteTodo,
+  useUpdateSubtask,
 } from "./hooks/useTodos";
