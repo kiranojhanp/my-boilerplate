@@ -1,18 +1,15 @@
-# Basic API
+# Simple Todo API
 
-A scalable, production-ready API built with **Bun**, **TypeScript**, **tRPC**, **Zod**, **SuperJSON**, and **Authentication**.
+A simple Todo API built with **Bun**, **TypeScript**, **tRPC**, **Zod**, and **SuperJSON**.
 
 ## 🚀 Features
 
 - **⚡ Bun Runtime**: Lightning-fast JavaScript runtime
-- **🔒 Authentication**: JWT-based auth with Bun's built-in password hashing (Argon2)
 - **📝 Type Safety**: Full-stack type safety with tRPC and TypeScript
 - **✅ Validation**: Input validation with Zod schemas
 - **📦 SuperJSON**: Enhanced JSON serialization (Date, Map, Set, BigInt, RegExp)
-- **📊 Metrics**: Prometheus metrics with custom dashboards
-- **🛡️ Security**: Rate limiting, CORS, security headers
-- **📋 Logging**: Structured logging with Winston
-- **🏥 Health Checks**: Kubernetes-ready health endpoints
+- ** Logging**: Structured logging with Winston
+- **📝 Todo Management**: Complete CRUD operations for todos with priorities, categories, and subtasks
 
 ## 📦 Installation
 
@@ -50,7 +47,6 @@ cp .env.example .env
 
 Key variables:
 
-- `JWT_SECRET`: Secret key for JWT tokens (change in production!)
 - `PORT`: Server port (default: 3000)
 - `NODE_ENV`: Environment (development/production)
 - `CORS_ORIGIN`: CORS allowed origins
@@ -61,119 +57,48 @@ Key variables:
 
 - `GET /` - API information
 - `GET /health` - Health check
-- `GET /metrics` - Prometheus metrics
 
 ### tRPC Endpoints
 
-#### 🔒 Authentication (`/trpc/auth.*`)
-
-- `POST /trpc/auth.register` - Register new user
-- `POST /trpc/auth.login` - Login user
-- `POST /trpc/auth.refresh` - Refresh access token
-- `GET /trpc/auth.me` - Get current user (requires auth)
-- `POST /trpc/auth.updateProfile` - Update user profile (requires auth)
-- `POST /trpc/auth.changePassword` - Change password (requires auth)
-- `POST /trpc/auth.deleteAccount` - Delete account (requires auth)
-
 #### � Todo Management (`/trpc/todo.*`)
 
-- `POST /trpc/todo.create` - Create new todo (requires auth)
-- `GET /trpc/todo.getById` - Get todo by ID (requires auth)
-- `GET /trpc/todo.list` - List todos with filtering/sorting (requires auth)
-- `POST /trpc/todo.update` - Update todo (requires auth)
-- `POST /trpc/todo.delete` - Delete todo (requires auth)
-- `POST /trpc/todo.addSubtask` - Add subtask (requires auth)
-- `POST /trpc/todo.updateSubtask` - Update subtask (requires auth)
-- `POST /trpc/todo.deleteSubtask` - Delete subtask (requires auth)
-- `GET /trpc/todo.getStats` - Get todo statistics (requires auth)
-- `POST /trpc/todo.bulkUpdate` - Bulk update todos (requires auth)
+- `POST /trpc/todo.create` - Create new todo
+- `GET /trpc/todo.getById` - Get todo by ID
+- `GET /trpc/todo.list` - List todos with filtering/sorting
+- `POST /trpc/todo.update` - Update todo
+- `POST /trpc/todo.delete` - Delete todo
+- `GET /trpc/todo.getStats` - Get todo statistics
 
-#### �👋 Hello Endpoints (`/trpc/hello.*`)
+## � Example Usage
 
-- `GET /trpc/hello.hello` - Simple hello world
-- `GET /trpc/hello.helloName` - Personalized greeting
-- `POST /trpc/hello.customHello` - Custom message
-- `GET /trpc/hello.protectedHello` - Protected endpoint (requires auth)
-- `GET /trpc/hello.complexData` - SuperJSON demo with complex types
-
-#### 🏥 Health Endpoints (`/trpc/health.*`)
-
-- `GET /trpc/health.check` - Detailed health check
-- `GET /trpc/health.ready` - Kubernetes readiness probe
-- `GET /trpc/health.live` - Kubernetes liveness probe
-
-## 🔑 Authentication Flow
-
-### 1. Register a User
+### 1. Create a Todo
 
 ```bash
-curl -X POST http://localhost:3000/trpc/auth.register \
+curl -X POST http://localhost:3000/trpc/todo.create \
   -H "Content-Type: application/json" \
   -d '{
     "input": {
-      "email": "user@example.com",
-      "username": "myuser",
-      "password": "SecurePass123!"
+      "title": "Learn tRPC",
+      "description": "Build a simple API with tRPC",
+      "priority": "high",
+      "category": "learning",
+      "tags": ["typescript", "trpc"],
+      "estimatedMinutes": 120
     }
   }'
 ```
 
-### 2. Login
+### 2. List Todos
 
 ```bash
-curl -X POST http://localhost:3000/trpc/auth.login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": {
-      "email": "user@example.com",
-      "password": "SecurePass123!"
-    }
-  }'
+curl "http://localhost:3000/trpc/todo.list?input={}"
 ```
 
-### 3. Use Protected Endpoints
+### 3. Get Todo Statistics
 
 ```bash
-curl http://localhost:3000/trpc/auth.me \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+curl "http://localhost:3000/trpc/todo.getStats"
 ```
-
-## 🧪 Testing
-
-Run the comprehensive test suite:
-
-```bash
-# Start the server first
-bun run dev
-
-# In another terminal, run basic tests
-bun run test-api.ts
-
-# Or run enhanced feature tests
-bun run test:enhanced
-
-# Or run todo API tests
-bun run test:todo
-```
-
-The test suite covers:
-
-- ✅ Health checks
-- ✅ SuperJSON serialization (Date, Map, Set, BigInt, RegExp)
-- ✅ Advanced Zod validation with custom refinements
-- ✅ User registration and login with enhanced security
-- ✅ Protected routes and JWT token management
-- ✅ Account lockout protection
-- ✅ File upload validation
-- ✅ Batch data processing
-- ✅ Complex search filtering
-- ✅ Password strength analysis
-- ✅ Bun crypto utilities
-- ✅ Todo CRUD operations
-- ✅ Subtask management
-- ✅ Todo statistics and analytics
-- ✅ Bulk operations
-- ✅ Error handling
 
 ## 🛠️ Technology Stack
 
@@ -188,15 +113,8 @@ The test suite covers:
 - **[Zod](https://zod.dev/)** - TypeScript-first schema validation
 - **[SuperJSON](https://github.com/blitz-js/superjson)** - Enhanced JSON serialization
 
-### Authentication & Security
+### Logging
 
-- **[Bun.password](https://bun.sh/docs/api/hashing)** - Argon2 password hashing
-- **[jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)** - JWT tokens
-- **[rate-limiter-flexible](https://github.com/animir/node-rate-limiter-flexible)** - Rate limiting
-
-### Monitoring & Observability
-
-- **[prom-client](https://github.com/siimon/prom-client)** - Prometheus metrics
 - **[winston](https://github.com/winstonjs/winston)** - Structured logging
 
 ## 📋 Project Structure
@@ -204,29 +122,20 @@ The test suite covers:
 ```
 src/
 ├── index.ts                 # Main server file
-├── middleware/
-│   ├── metrics.ts          # Prometheus metrics
-│   └── rateLimiter.ts      # Rate limiting
+├── shared/
+│   ├── trpc/
+│   │   └── trpc.ts          # tRPC setup with SuperJSON
+│   └── utils/
+│       └── logger.ts        # Logging configuration
 ├── trpc/
-│   ├── trpc.ts             # tRPC setup with SuperJSON
-│   ├── router.ts           # Main router
-│   └── routers/
-│       ├── auth.ts         # Authentication endpoints
-│       ├── hello.ts        # Hello world endpoints
-│       └── health.ts       # Health check endpoints
-└── utils/
-    ├── auth.ts             # Authentication utilities
-    └── logger.ts           # Logging configuration
+│   └── router.ts            # Main router
+└── features/
+    └── todo/
+        ├── index.ts         # Todo feature exports
+        ├── router.ts        # Todo routes
+        ├── service.ts       # Todo business logic
+        └── schemas.ts       # Todo validation schemas
 ```
-
-## 🔒 Security Features
-
-- **Password Hashing**: Argon2 with Bun.password
-- **JWT Tokens**: Secure token-based authentication
-- **Rate Limiting**: Configurable rate limits per endpoint
-- **CORS**: Cross-origin resource sharing protection
-- **Security Headers**: XSS, CSRF, and other security headers
-- **Input Validation**: Zod schema validation for all inputs
 
 ## 📊 SuperJSON Features
 
@@ -252,46 +161,11 @@ Example response with SuperJSON:
 }
 ```
 
-## 🐳 Docker Deployment
-
-```bash
-# Build image
-bun run docker:build
-
-# Run container
-bun run docker:run
-
-# Docker Compose
-bun run compose:up
-```
-
-## ☸️ Kubernetes Deployment
-
-```bash
-# Deploy to Kubernetes
-bun run k8s:deploy
-
-# Remove from Kubernetes
-bun run k8s:delete
-```
-
 ## 🚀 Performance
 
 - **Bun Runtime**: Up to 4x faster than Node.js
 - **tRPC**: Minimal runtime overhead
-- **Argon2**: Secure yet efficient password hashing
-- **Connection Pooling**: Efficient resource usage
-- **Prometheus Metrics**: Real-time performance monitoring
-
-## 📈 Monitoring
-
-Access metrics at `http://localhost:3000/metrics` for:
-
-- HTTP request duration and count
-- Memory usage
-- Active connections
-- Rate limit hits
-- Custom business metrics
+- **SuperJSON**: Enhanced serialization without performance penalty
 
 ## 🤝 Contributing
 

@@ -1,17 +1,11 @@
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import superjson from "superjson";
 import { logger } from "../utils/logger";
-import {
-  extractTokenFromHeader,
-  getUserFromToken,
-  type AuthContext,
-} from "../utils/auth";
 
 // Context type for tRPC
 export interface Context {
   req: Request;
-  auth?: AuthContext;
 }
 
 // Create the tRPC instance with SuperJSON transformer
@@ -59,36 +53,5 @@ export const loggingMiddleware = middleware(async ({ path, type, next }) => {
   return result;
 });
 
-// Authentication middleware
-export const authMiddleware = middleware(async ({ ctx, next }) => {
-  const authHeader = ctx.req.headers.get("authorization");
-  const token = extractTokenFromHeader(authHeader);
-
-  if (!token) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "No authentication token provided",
-    });
-  }
-
-  const user = await getUserFromToken(token);
-  if (!user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Invalid or expired token",
-    });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      auth: { user },
-    },
-  });
-});
-
 // Procedure with logging
 export const loggedProcedure = publicProcedure.use(loggingMiddleware);
-
-// Protected procedure (requires authentication)
-export const protectedProcedure = loggedProcedure.use(authMiddleware);

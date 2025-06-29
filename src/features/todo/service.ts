@@ -10,9 +10,8 @@ import type {
 // In-memory todo store (replace with database in production)
 export class TodoStore {
   private todos: Map<string, Todo> = new Map();
-  private userTodos: Map<string, Set<string>> = new Map();
 
-  createTodo(userId: string, data: CreateTodoInput): Todo {
+  createTodo(data: CreateTodoInput): Todo {
     const todo: Todo = {
       id: crypto.randomUUID(),
       title: data.title,
@@ -23,7 +22,6 @@ export class TodoStore {
       dueDate: data.dueDate,
       createdAt: new Date(),
       updatedAt: new Date(),
-      userId,
       tags: data.tags,
       estimatedMinutes: data.estimatedMinutes,
       subtasks: data.subtasks.map((st) => ({
@@ -36,14 +34,8 @@ export class TodoStore {
 
     this.todos.set(todo.id, todo);
 
-    if (!this.userTodos.has(userId)) {
-      this.userTodos.set(userId, new Set());
-    }
-    this.userTodos.get(userId)!.add(todo.id);
-
     logger.info(`Todo created: ${todo.title}`, {
       todoId: todo.id,
-      userId,
       priority: todo.priority,
       category: todo.category,
     });
@@ -51,28 +43,19 @@ export class TodoStore {
     return todo;
   }
 
-  getTodoById(id: string, userId: string): Todo | null {
+  getTodoById(id: string): Todo | null {
     const todo = this.todos.get(id);
-    if (!todo || todo.userId !== userId) {
-      return null;
-    }
-    return todo;
+    return todo || null;
   }
 
-  listTodos(
-    userId: string,
-    filters: ListTodosInput
-  ): {
+  listTodos(filters: ListTodosInput): {
     todos: Todo[];
     total: number;
     page: number;
     limit: number;
     totalPages: number;
   } {
-    const userTodoIds = this.userTodos.get(userId) || new Set();
-    let todos = Array.from(userTodoIds)
-      .map((id) => this.todos.get(id)!)
-      .filter(Boolean);
+    let todos = Array.from(this.todos.values());
 
     // Apply filters
     if (filters.status) {
@@ -154,12 +137,8 @@ export class TodoStore {
     };
   }
 
-  updateTodo(
-    id: string,
-    userId: string,
-    updates: Partial<UpdateTodoInput>
-  ): Todo | null {
-    const todo = this.getTodoById(id, userId);
+  updateTodo(id: string, updates: Partial<UpdateTodoInput>): Todo | null {
+    const todo = this.getTodoById(id);
     if (!todo) return null;
 
     const updatedTodo: Todo = {
@@ -174,33 +153,27 @@ export class TodoStore {
 
     logger.info(`Todo updated: ${todo.title}`, {
       todoId: id,
-      userId,
       updates: Object.keys(updates),
     });
 
     return updatedTodo;
   }
 
-  deleteTodo(id: string, userId: string): boolean {
-    const todo = this.getTodoById(id, userId);
+  deleteTodo(id: string): boolean {
+    const todo = this.getTodoById(id);
     if (!todo) return false;
 
     this.todos.delete(id);
-    this.userTodos.get(userId)?.delete(id);
 
     logger.info(`Todo deleted: ${todo.title}`, {
       todoId: id,
-      userId,
     });
 
     return true;
   }
 
-  getUserStats(userId: string): TodoStats {
-    const userTodoIds = this.userTodos.get(userId) || new Set();
-    const todos = Array.from(userTodoIds)
-      .map((id) => this.todos.get(id)!)
-      .filter(Boolean);
+  getStats(): TodoStats {
+    const todos = Array.from(this.todos.values());
 
     const now = new Date();
     const overdue = todos.filter(
@@ -238,36 +211,33 @@ export const todoStore = new TodoStore();
 
 // TodoService class for handling business logic
 export class TodoService {
-  static createTodo(data: CreateTodoInput, userId: string): Todo {
-    return todoStore.createTodo(userId, data);
+  static createTodo(data: CreateTodoInput): Todo {
+    return todoStore.createTodo(data);
   }
 
-  static listTodos(
-    filters: ListTodosInput,
-    userId: string
-  ): {
+  static listTodos(filters: ListTodosInput): {
     todos: Todo[];
     total: number;
     page: number;
     limit: number;
     totalPages: number;
   } {
-    return todoStore.listTodos(userId, filters);
+    return todoStore.listTodos(filters);
   }
 
-  static getTodoById(id: string, userId: string): Todo | null {
-    return todoStore.getTodoById(id, userId);
+  static getTodoById(id: string): Todo | null {
+    return todoStore.getTodoById(id);
   }
 
-  static updateTodo(data: UpdateTodoInput, userId: string): Todo | null {
-    return todoStore.updateTodo(data.id, userId, data);
+  static updateTodo(data: UpdateTodoInput): Todo | null {
+    return todoStore.updateTodo(data.id, data);
   }
 
-  static deleteTodo(id: string, userId: string): boolean {
-    return todoStore.deleteTodo(id, userId);
+  static deleteTodo(id: string): boolean {
+    return todoStore.deleteTodo(id);
   }
 
-  static getUserStats(userId: string): TodoStats {
-    return todoStore.getUserStats(userId);
+  static getStats(): TodoStats {
+    return todoStore.getStats();
   }
 }

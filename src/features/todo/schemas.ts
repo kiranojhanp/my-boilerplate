@@ -41,7 +41,6 @@ export const TodoSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   completedAt: z.date().optional(),
-  userId: z.string().uuid(),
   tags: z.array(z.string()),
   estimatedMinutes: z.number().int().positive().optional(),
   actualMinutes: z.number().int().positive().optional(),
