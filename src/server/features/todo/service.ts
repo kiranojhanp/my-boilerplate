@@ -10,7 +10,7 @@ import {
   sql,
   asc,
 } from "drizzle-orm";
-import { db } from "../../shared/db/index.js";
+import { db } from "../../shared/db";
 import {
   todos,
   subtasks,
@@ -18,15 +18,15 @@ import {
   type NewTodo,
   type Subtask,
   type NewSubtask,
-} from "../../shared/db/schema.js";
+} from "../../shared/db/schema";
 import type {
   CreateTodoInput,
   UpdateTodoInput,
   ListTodosInput,
   TodoStats,
   CreateSubtaskInput,
-} from "./schemas.js";
-import { logger } from "../../shared/utils/logger.js";
+} from "./schemas";
+import { logger } from "../../shared/utils/logger";
 
 // Extended update input with subtasks for internal use
 interface ExtendedUpdateTodoInput extends UpdateTodoInput {

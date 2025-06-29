@@ -1,8 +1,8 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import * as schema from "./schema.js";
-import { logger } from "../utils/logger.js";
+import * as schema from "./schema";
+import { logger } from "../utils/logger";
 
 // Create SQLite database connection
 const sqlite = new Database("todo.db", { create: true });

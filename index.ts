@@ -1,2 +1,2 @@
-// This file is not used - the main entry point is src/index.ts
+// This file is not used - the main entry point is src.ts
 export {};
