@@ -35,7 +35,7 @@ if (NODE_ENV === "production") {
       level: "error",
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.formaton()
+        winston.format.json()
       ),
     })
   );
@@ -45,7 +45,7 @@ if (NODE_ENV === "production") {
       filename: "logs/combined.log",
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.formaton()
+        winston.format.json()
       ),
     })
   );
