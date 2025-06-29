@@ -1,38 +1,75 @@
-import { logger } from "../../shared/utils/logger";
+import {
+  desc,
+  eq,
+  and,
+  or,
+  like,
+  gte,
+  lte,
+  count,
+  sql,
+  asc,
+} from "drizzle-orm";
+import { db } from "../../shared/db/index.js";
+import {
+  todos,
+  subtasks,
+  type Todo,
+  type NewTodo,
+  type Subtask,
+  type NewSubtask,
+} from "../../shared/db/schema.js";
 import type {
-  Todo,
   CreateTodoInput,
-  ListTodosInput,
   UpdateTodoInput,
+  ListTodosInput,
   TodoStats,
-} from "./schemas";
+  CreateSubtaskInput,
+} from "./schemas.js";
+import { logger } from "../../shared/utils/logger.js";
 
-// In-memory todo store (replace with database in production)
-export class TodoStore {
-  private todos: Map<string, Todo> = new Map();
+// Extended update input with subtasks for internal use
+interface ExtendedUpdateTodoInput extends UpdateTodoInput {
+  subtasks?: CreateSubtaskInput[];
+}
 
-  createTodo(data: CreateTodoInput): Todo {
-    const todo: Todo = {
-      id: crypto.randomUUID(),
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: "pending",
-      category: data.category,
-      dueDate: data.dueDate,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      tags: data.tags,
-      estimatedMinutes: data.estimatedMinutes,
-      subtasks: data.subtasks.map((st) => ({
-        id: crypto.randomUUID(),
+// TodoService class for handling business logic with Drizzle ORM
+export class TodoService {
+  static async createTodo(
+    data: CreateTodoInput
+  ): Promise<Todo & { subtasks: Subtask[] }> {
+    const [todo] = await db
+      .insert(todos)
+      .values({
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        category: data.category,
+        dueDate: data.dueDate,
+        tags: data.tags || [],
+        estimatedMinutes: data.estimatedMinutes,
+      })
+      .returning();
+
+    if (!todo) {
+      throw new Error("Failed to create todo");
+    }
+
+    // Create subtasks if provided
+    const createdSubtasks: Subtask[] = [];
+    if (data.subtasks && data.subtasks.length > 0) {
+      const subtaskData = data.subtasks.map((st, index) => ({
+        todoId: todo.id,
         title: st.title,
-        completed: false,
-        createdAt: new Date(),
-      })),
-    };
+        order: index,
+      }));
 
-    this.todos.set(todo.id, todo);
+      const insertedSubtasks = await db
+        .insert(subtasks)
+        .values(subtaskData)
+        .returning();
+      createdSubtasks.push(...insertedSubtasks);
+    }
 
     logger.info(`Todo created: ${todo.title}`, {
       todoId: todo.id,
@@ -40,96 +77,126 @@ export class TodoStore {
       category: todo.category,
     });
 
-    return todo;
+    return { ...todo, subtasks: createdSubtasks };
   }
 
-  getTodoById(id: string): Todo | null {
-    const todo = this.todos.get(id);
+  static async getTodoById(
+    id: string
+  ): Promise<(Todo & { subtasks: Subtask[] }) | null> {
+    const todo = await db.query.todos.findFirst({
+      where: eq(todos.id, id),
+      with: {
+        subtasks: {
+          orderBy: asc(subtasks.order),
+        },
+      },
+    });
+
     return todo || null;
   }
 
-  listTodos(filters: ListTodosInput): {
-    todos: Todo[];
+  static async listTodos(filters: ListTodosInput): Promise<{
+    todos: (Todo & { subtasks: Subtask[] })[];
     total: number;
     page: number;
     limit: number;
     totalPages: number;
-  } {
-    let todos = Array.from(this.todos.values());
+  }> {
+    // Build WHERE conditions
+    const conditions = [];
 
-    // Apply filters
     if (filters.status) {
-      todos = todos.filter((todo) => todo.status === filters.status);
+      conditions.push(eq(todos.status, filters.status));
     }
 
     if (filters.priority) {
-      todos = todos.filter((todo) => todo.priority === filters.priority);
+      conditions.push(eq(todos.priority, filters.priority));
     }
 
     if (filters.category) {
-      todos = todos.filter((todo) => todo.category === filters.category);
+      conditions.push(eq(todos.category, filters.category));
     }
 
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      todos = todos.filter(
-        (todo) =>
-          todo.title.toLowerCase().includes(searchLower) ||
-          todo.description?.toLowerCase().includes(searchLower)
+      const searchTerm = `%${filters.search}%`;
+      conditions.push(
+        or(like(todos.title, searchTerm), like(todos.description, searchTerm))
       );
     }
 
     if (filters.tags && filters.tags.length > 0) {
-      todos = todos.filter((todo) =>
-        filters.tags!.some((tag) => todo.tags.includes(tag))
+      // SQLite JSON search for tags
+      const tagConditions = filters.tags.map(
+        (tag) => sql`json_extract(${todos.tags}, '$') LIKE ${`%"${tag}"%`}`
       );
+      conditions.push(or(...tagConditions));
     }
 
     if (filters.dueBefore) {
-      todos = todos.filter(
-        (todo) => todo.dueDate && todo.dueDate <= filters.dueBefore!
-      );
+      conditions.push(lte(todos.dueDate, filters.dueBefore));
     }
 
     if (filters.dueAfter) {
-      todos = todos.filter(
-        (todo) => todo.dueDate && todo.dueDate >= filters.dueAfter!
-      );
+      conditions.push(gte(todos.dueDate, filters.dueAfter));
     }
 
-    // Sort todos
-    todos.sort((a, b) => {
-      const field = filters.sortBy;
-      const order = filters.sortOrder === "asc" ? 1 : -1;
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      if (field === "priority") {
-        const priorityOrder = { low: 1, medium: 2, high: 3, urgent: 4 };
-        return (priorityOrder[a.priority] - priorityOrder[b.priority]) * order;
-      }
+    // Build ORDER BY
+    let orderBy;
+    const order = filters.sortOrder === "asc" ? asc : desc;
 
-      if (field === "dueDate") {
-        const aDate = a.dueDate?.getTime() || 0;
-        const bDate = b.dueDate?.getTime() || 0;
-        return (aDate - bDate) * order;
-      }
+    switch (filters.sortBy) {
+      case "priority":
+        // Custom priority ordering: urgent > high > medium > low
+        orderBy = sql`CASE ${todos.priority} 
+          WHEN 'urgent' THEN 4 
+          WHEN 'high' THEN 3 
+          WHEN 'medium' THEN 2 
+          WHEN 'low' THEN 1 
+          END ${filters.sortOrder === "asc" ? sql`ASC` : sql`DESC`}`;
+        break;
+      case "dueDate":
+        orderBy = order(todos.dueDate);
+        break;
+      case "title":
+        orderBy = order(todos.title);
+        break;
+      case "createdAt":
+        orderBy = order(todos.createdAt);
+        break;
+      case "updatedAt":
+      default:
+        orderBy = order(todos.updatedAt);
+        break;
+    }
 
-      if (field === "title") {
-        return a.title.localeCompare(b.title) * order;
-      }
+    // Get total count
+    const totalResult = await db
+      .select({ count: count() })
+      .from(todos)
+      .where(whereClause);
 
-      // Default to createdAt or updatedAt
-      const aTime = (a[field] as Date).getTime();
-      const bTime = (b[field] as Date).getTime();
-      return (bTime - aTime) * order;
+    const total = totalResult[0]?.count ?? 0;
+
+    // Get paginated results
+    const offset = (filters.page - 1) * filters.limit;
+    const todosList = await db.query.todos.findMany({
+      where: whereClause,
+      with: {
+        subtasks: {
+          orderBy: asc(subtasks.order),
+        },
+      },
+      orderBy,
+      limit: filters.limit,
+      offset,
     });
 
-    const total = todos.length;
     const totalPages = Math.ceil(total / filters.limit);
-    const offset = (filters.page - 1) * filters.limit;
-    const paginatedTodos = todos.slice(offset, offset + filters.limit);
 
     return {
-      todos: paginatedTodos,
+      todos: todosList,
       total,
       page: filters.page,
       limit: filters.limit,
@@ -137,33 +204,76 @@ export class TodoStore {
     };
   }
 
-  updateTodo(id: string, updates: Partial<UpdateTodoInput>): Todo | null {
-    const todo = this.getTodoById(id);
-    if (!todo) return null;
+  static async updateTodo(
+    data: ExtendedUpdateTodoInput
+  ): Promise<(Todo & { subtasks: Subtask[] }) | null> {
+    const existingTodo = await this.getTodoById(data.id);
+    if (!existingTodo) return null;
 
-    const updatedTodo: Todo = {
-      ...todo,
-      ...updates,
+    // Prepare update data
+    const updateData: Partial<NewTodo> = {
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      category: data.category,
+      dueDate: data.dueDate,
+      tags: data.tags,
+      estimatedMinutes: data.estimatedMinutes,
+      actualMinutes: data.actualMinutes,
       updatedAt: new Date(),
-      // Handle status change to completed
-      ...(updates.status === "completed" ? { completedAt: new Date() } : {}),
     };
 
-    this.todos.set(id, updatedTodo);
+    // Handle status change to completed
+    if (data.status === "completed" && existingTodo.status !== "completed") {
+      updateData.completedAt = new Date();
+    }
 
-    logger.info(`Todo updated: ${todo.title}`, {
-      todoId: id,
-      updates: Object.keys(updates),
+    // Update the todo
+    const updatedTodos = await db
+      .update(todos)
+      .set(updateData)
+      .where(eq(todos.id, data.id))
+      .returning();
+
+    const updatedTodo = updatedTodos[0];
+    if (!updatedTodo) {
+      throw new Error("Failed to update todo");
+    }
+
+    // Handle subtasks update if provided
+    if (data.subtasks) {
+      // Delete existing subtasks
+      await db.delete(subtasks).where(eq(subtasks.todoId, data.id));
+
+      // Insert new subtasks
+      if (data.subtasks.length > 0) {
+        const subtaskData = data.subtasks.map((st, index) => ({
+          todoId: data.id,
+          title: st.title,
+          completed: false,
+          order: index,
+        }));
+
+        await db.insert(subtasks).values(subtaskData);
+      }
+    }
+
+    logger.info(`Todo updated: ${updatedTodo.title}`, {
+      todoId: data.id,
+      updates: Object.keys(data),
     });
 
-    return updatedTodo;
+    // Return updated todo with subtasks
+    return this.getTodoById(data.id);
   }
 
-  deleteTodo(id: string): boolean {
-    const todo = this.getTodoById(id);
+  static async deleteTodo(id: string): Promise<boolean> {
+    const todo = await this.getTodoById(id);
     if (!todo) return false;
 
-    this.todos.delete(id);
+    // Delete todo (subtasks will be deleted due to cascade)
+    await db.delete(todos).where(eq(todos.id, id));
 
     logger.info(`Todo deleted: ${todo.title}`, {
       todoId: id,
@@ -172,72 +282,79 @@ export class TodoStore {
     return true;
   }
 
-  getStats(): TodoStats {
-    const todos = Array.from(this.todos.values());
+  static async getStats(): Promise<TodoStats> {
+    // Get all todos count and status breakdown
+    const statsResults = await db
+      .select({
+        total: count(),
+        pending: count(sql`CASE WHEN ${todos.status} = 'pending' THEN 1 END`),
+        inProgress: count(
+          sql`CASE WHEN ${todos.status} = 'in_progress' THEN 1 END`
+        ),
+        completed: count(
+          sql`CASE WHEN ${todos.status} = 'completed' THEN 1 END`
+        ),
+        cancelled: count(
+          sql`CASE WHEN ${todos.status} = 'cancelled' THEN 1 END`
+        ),
+        overdue: count(
+          sql`CASE WHEN ${todos.dueDate} < ${new Date()} AND ${todos.status} != 'completed' THEN 1 END`
+        ),
+      })
+      .from(todos);
 
-    const now = new Date();
-    const overdue = todos.filter(
-      (todo) =>
-        todo.dueDate && todo.dueDate < now && todo.status !== "completed"
-    ).length;
-
-    const byPriority = {
-      low: todos.filter((t) => t.priority === "low").length,
-      medium: todos.filter((t) => t.priority === "medium").length,
-      high: todos.filter((t) => t.priority === "high").length,
-      urgent: todos.filter((t) => t.priority === "urgent").length,
+    const statsResult = statsResults[0] ?? {
+      total: 0,
+      pending: 0,
+      inProgress: 0,
+      completed: 0,
+      cancelled: 0,
+      overdue: 0,
     };
 
+    // Get priority breakdown
+    const priorityStats = await db
+      .select({
+        priority: todos.priority,
+        count: count(),
+      })
+      .from(todos)
+      .groupBy(todos.priority);
+
+    const byPriority = {
+      low: 0,
+      medium: 0,
+      high: 0,
+      urgent: 0,
+    };
+
+    priorityStats.forEach(({ priority, count }) => {
+      byPriority[priority] = count;
+    });
+
+    // Get category breakdown
+    const categoryStats = await db
+      .select({
+        category: todos.category,
+        count: count(),
+      })
+      .from(todos)
+      .groupBy(todos.category);
+
     const byCategory: Record<string, number> = {};
-    todos.forEach((todo) => {
-      byCategory[todo.category] = (byCategory[todo.category] || 0) + 1;
+    categoryStats.forEach(({ category, count }) => {
+      byCategory[category] = count;
     });
 
     return {
-      total: todos.length,
-      pending: todos.filter((t) => t.status === "pending").length,
-      inProgress: todos.filter((t) => t.status === "in_progress").length,
-      completed: todos.filter((t) => t.status === "completed").length,
-      cancelled: todos.filter((t) => t.status === "cancelled").length,
-      overdue,
+      total: statsResult.total,
+      pending: statsResult.pending,
+      inProgress: statsResult.inProgress,
+      completed: statsResult.completed,
+      cancelled: statsResult.cancelled,
+      overdue: statsResult.overdue,
       byPriority,
       byCategory,
     };
-  }
-}
-
-// Export a singleton instance
-export const todoStore = new TodoStore();
-
-// TodoService class for handling business logic
-export class TodoService {
-  static createTodo(data: CreateTodoInput): Todo {
-    return todoStore.createTodo(data);
-  }
-
-  static listTodos(filters: ListTodosInput): {
-    todos: Todo[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  } {
-    return todoStore.listTodos(filters);
-  }
-
-  static getTodoById(id: string): Todo | null {
-    return todoStore.getTodoById(id);
-  }
-
-  static updateTodo(data: UpdateTodoInput): Todo | null {
-    return todoStore.updateTodo(data.id, data);
-  }
-
-  static deleteTodo(id: string): boolean {
-    return todoStore.deleteTodo(id);
-  }
-
-  static getStats(): TodoStats {
-    return todoStore.getStats();
   }
 }
