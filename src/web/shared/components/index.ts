@@ -6,3 +6,4 @@ export { Badge } from "./Badge";
 export { Modal } from "./Modal";
 export { Card } from "./Card";
 export { LoadingSpinner } from "./LoadingSpinner";
+export { ErrorAlert } from "./ErrorAlert";

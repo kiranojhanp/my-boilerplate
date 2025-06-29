@@ -1,39 +1,65 @@
 /* TodoCard styles */
 .card {
     background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
     position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    opacity: 0;
+    transition: opacity var(--transition-base);
 }
 
 .card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card:hover::before {
+    opacity: 1;
 }
 
 .overdue {
-    border-color: #f56565;
+    border-color: var(--color-danger);
+}
+
+.overdue::before {
+    background: var(--color-danger);
+    opacity: 1;
 }
 
 .overdueBadge {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #f56565;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    background: var(--color-danger);
     color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: bold;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-md);
 }
 
 .content {
@@ -41,11 +67,11 @@
 }
 
 .title {
-    margin: 0 0 10px 0;
-    color: #2d3748;
-    font-size: 1.1rem;
-    font-weight: 600;
-    line-height: 1.4;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-gray-700);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--leading-tight);
 }
 
 .completed {
@@ -55,60 +81,64 @@
 
 .badges {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-sm);
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    margin-bottom: var(--spacing-md);
 }
 
 .description {
-    color: #718096;
-    margin: 10px 0;
-    line-height: 1.5;
+    color: var(--color-gray-500);
+    margin: var(--spacing-sm) 0;
+    line-height: var(--leading-relaxed);
+    font-size: var(--font-size-sm);
 }
 
 .tags {
     display: flex;
-    gap: 5px;
+    gap: var(--spacing-xs);
     flex-wrap: wrap;
-    margin-bottom: 10px;
+    margin-bottom: var(--spacing-sm);
 }
 
 .tag {
-    background: #edf2f7;
-    color: #4a5568;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
+    background: linear-gradient(135deg, var(--color-gray-100), var(--color-gray-200));
+    color: var(--color-gray-600);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
 }
 
 .metadata {
     display: flex;
-    gap: 15px;
-    font-size: 0.9rem;
-    color: #718096;
+    gap: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-500);
     flex-wrap: wrap;
 }
 
 .actions {
     display: flex;
-    gap: 5px;
-    margin-left: 15px;
+    gap: var(--spacing-xs);
+    margin-left: var(--spacing-md);
 }
 
 .statusButtons {
     display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
     flex-wrap: wrap;
 }
 
 .statusButton {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base);
+    border: 1px solid currentColor;
+    background: white;
 }
 
 .statusButton:disabled {
@@ -117,35 +147,41 @@
 }
 
 .statusButtonActive {
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
+    color: white;
 }
 
 .subtasks {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #e2e8f0;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-gray-200);
 }
 
 .subtasksTitle {
-    margin: 0 0 10px 0;
-    color: #4a5568;
-    font-size: 0.9rem;
-    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-gray-600);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
 }
 
 .subtasksList {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-sm);
 }
 
 .subtask {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px;
-    background: #f8f9fa;
-    border-radius: 4px;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-base);
+}
+
+.subtask:hover {
+    background: var(--color-gray-100);
 }
 
 .subtaskToggle {
@@ -156,7 +192,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.1s ease;
+    transition: transform var(--transition-fast);
 }
 
 .subtaskToggle:hover {
@@ -169,13 +205,13 @@
 }
 
 .subtaskIcon {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
 }
 
 .subtaskTitle {
     flex: 1;
-    font-size: 0.9rem;
-    color: #4a5568;
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-600);
 }
 
 .subtaskCompleted {
@@ -184,21 +220,21 @@
 }
 
 .expandedInfo {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #e2e8f0;
-    font-size: 0.8rem;
-    color: #718096;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-gray-200);
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-500);
 }
 
 .expandedInfo>div {
-    margin-bottom: 5px;
+    margin-bottom: var(--spacing-xs);
 }
 
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
-        gap: 15px;
+        gap: var(--spacing-md);
     }
 
     .actions {
@@ -206,11 +242,11 @@
     }
 
     .statusButtons {
-        gap: 5px;
+        gap: var(--spacing-xs);
     }
 
     .statusButton {
-        padding: 3px 6px;
-        font-size: 0.75rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
     }
 }

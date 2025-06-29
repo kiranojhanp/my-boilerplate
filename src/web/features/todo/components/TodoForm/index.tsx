@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import styles from "./styles.module.css";
-import { Button, Input, Textarea, Select } from "../../../../shared/components";
+import {
+  Button,
+  Input,
+  Textarea,
+  Select,
+  ErrorAlert,
+} from "../../../../shared/components";
 import { useCreateTodo, useUpdateTodo } from "../../hooks/useTodos";
 import type {
   Todo,
@@ -182,19 +188,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         {isEditing ? "Edit Todo" : "Create New Todo"}
       </h3>
 
-      {errors.general && (
-        <div
-          style={{
-            color: "#e53e3e",
-            marginBottom: "16px",
-            padding: "10px",
-            background: "#fed7d7",
-            borderRadius: "4px",
-          }}
-        >
-          {errors.general}
-        </div>
-      )}
+      {errors.general && <ErrorAlert message={errors.general} />}
 
       <form onSubmit={handleSubmit} className={styles.formGrid}>
         <div className={styles.formRow}>

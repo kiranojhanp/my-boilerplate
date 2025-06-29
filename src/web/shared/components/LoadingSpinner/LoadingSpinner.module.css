@@ -1,0 +1,67 @@
+/* LoadingSpinner styles */
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm, 8px);
+    padding: var(--spacing-sm, 8px);
+}
+
+.spinner {
+    display: inline-block;
+    border-radius: 50%;
+    border: 3px solid var(--color-gray-200, #e2e8f0);
+    border-top: 3px solid var(--color-primary, #4299e1);
+    animation: spin 1s linear infinite;
+}
+
+.small {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+
+.medium {
+    width: 24px;
+    height: 24px;
+    border-width: 3px;
+}
+
+.large {
+    width: 32px;
+    height: 32px;
+    border-width: 4px;
+}
+
+.text {
+    color: var(--color-gray-500, #718096);
+    font-size: var(--font-size-base, 1rem);
+}
+
+.textSmall {
+    font-size: var(--font-size-sm, 0.875rem);
+}
+
+.fadeIn {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

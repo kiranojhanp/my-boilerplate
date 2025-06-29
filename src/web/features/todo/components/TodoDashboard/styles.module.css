@@ -2,15 +2,15 @@
 .dashboard {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: var(--spacing-lg);
 }
 
 .controls {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 24px;
-    gap: 16px;
+    margin-bottom: var(--spacing-xl);
+    gap: var(--spacing-md);
 }
 
 .filtersSection {
@@ -18,76 +18,94 @@
 }
 
 .addButton {
-    background: #27ae60;
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-base);
     white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
 .addButton:hover {
-    background: #229954;
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.addButton:active {
+    transform: translateY(0);
 }
 
 .addButton.cancel {
-    background: #e74c3c;
+    background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
 }
 
 .addButton.cancel:hover {
-    background: #c0392b;
+    background: linear-gradient(135deg, var(--color-danger-dark) 0%, var(--color-danger) 100%);
 }
 
 .todosList {
     display: grid;
-    gap: 16px;
-    margin-top: 20px;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
 }
 
 .emptyState {
     text-align: center;
-    padding: 60px 20px;
-    color: #718096;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    color: var(--color-gray-500);
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .emptyStateIcon {
-    font-size: 3rem;
-    margin-bottom: 16px;
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--spacing-md);
+    opacity: 0.7;
 }
 
 .emptyStateTitle {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #4a5568;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-gray-600);
 }
 
 .emptyStateText {
-    font-size: 1rem;
-    line-height: 1.5;
+    font-size: var(--font-size-base);
+    line-height: var(--leading-relaxed);
+    max-width: 400px;
+    margin: 0 auto;
 }
 
 .loading {
     text-align: center;
-    padding: 40px;
-    color: #718096;
-    font-size: 1.1rem;
+    padding: var(--spacing-2xl);
+    color: var(--color-gray-500);
+    font-size: var(--font-size-lg);
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .loadingSpinner {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #e2e8f0;
-    border-top: 3px solid #4299e1;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--color-gray-200);
+    border-top: 3px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-right: 8px;
+    margin-right: var(--spacing-sm);
 }
 
 @keyframes spin {
@@ -102,16 +120,17 @@
 
 @media (max-width: 768px) {
     .dashboard {
-        padding: 12px;
+        padding: var(--spacing-md);
     }
 
     .controls {
         flex-direction: column;
         align-items: stretch;
+        gap: var(--spacing-md);
     }
 
     .addButton {
         order: -1;
-        margin-bottom: 16px;
+        justify-content: center;
     }
 }
