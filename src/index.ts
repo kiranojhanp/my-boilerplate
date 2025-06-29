@@ -1,7 +1,7 @@
-import { appRouter } from "./trpc/router";
-import { logger } from "./shared/utils/logger";
+import { appRouter } from "./server/trpc/router";
+import { logger } from "./server/shared/utils/logger";
 import { createBunServeHandler } from "trpc-bun-adapter";
-import { initializeDatabase, closeDatabase } from "./shared/db";
+import { initializeDatabase, closeDatabase } from "./server/shared/db";
 
 // Initialize database
 await initializeDatabase();
@@ -15,10 +15,23 @@ const trpcHandler = createBunServeHandler(
   {
     port: process.env.PORT || 3000,
     async fetch(request, server) {
-      return new Response("Hello world");
+      const url = new URL(request.url);
+
+      if (url.pathname === "/app.js") {
+        return new Response(Bun.file("./dist/app.js"));
+      }
+
+      if (url.pathname === "/") {
+        return new Response(Bun.file("./src/web/index.html"));
+      }
+
+      return new Response("Not found", { status: 404 });
     },
   }
 );
+
+logger.info("Building client...");
+Bun.spawnSync(["bun", "build:client"]);
 
 // Start server
 const server = Bun.serve(trpcHandler);
