@@ -7,11 +7,13 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/index.ts",
+    "dev:web": "vite",
+    "dev:full": "concurrently \"bun run dev\" \"bun run dev:web\"",
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --outdir ./dist --target bun",
-    "build:web": "bun build src/web/app.tsx --outdir ./dist --format esm --target browser --minify --sourcemap=external",
-    "build:web:analyze": "bun build src/web/app.tsx --outdir ./dist --format esm --splitting --target browser --minify --analyze",
-    "build:all": "bun run build:web",
+    "build:web": "vite build",
+    "build:web:preview": "vite preview",
+    "build:all": "bun run build:web && bun run build",
     "test": "bun test",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
@@ -42,8 +44,12 @@
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
+    "@vitejs/plugin-react": "^4.6.0",
+    "concurrently": "^9.2.0",
     "eslint": "^8.57.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "vite": "^7.0.0",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "peerDependencies": {
     "typescript": "^5"

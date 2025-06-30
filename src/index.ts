@@ -3,6 +3,43 @@ import { logger } from "@/server/shared/utils/logger";
 import { createBunServeHandler } from "trpc-bun-adapter";
 import { initializeDatabase, closeDatabase } from "@/server/shared/db";
 
+// Helper function to determine content type based on file extension
+function getContentType(pathname: string): string {
+  const ext = pathname.split(".").pop()?.toLowerCase();
+
+  switch (ext) {
+    case "js":
+      return "application/javascript";
+    case "css":
+      return "text/css";
+    case "html":
+      return "text/html";
+    case "json":
+      return "application/json";
+    case "png":
+      return "image/png";
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "gif":
+      return "image/gif";
+    case "svg":
+      return "image/svg+xml";
+    case "ico":
+      return "image/x-icon";
+    case "woff":
+      return "font/woff";
+    case "woff2":
+      return "font/woff2";
+    case "ttf":
+      return "font/ttf";
+    case "eot":
+      return "application/vnd.ms-fontobject";
+    default:
+      return "application/octet-stream";
+  }
+}
+
 // Initialize database
 await initializeDatabase();
 
@@ -21,10 +58,11 @@ const trpcHandler = createBunServeHandler(
       if (
         url.pathname === "/" ||
         url.pathname.startsWith("/todos") ||
-        url.pathname === "/about"
+        url.pathname.startsWith("/about") ||
+        url.pathname.startsWith("/settings")
       ) {
         try {
-          return new Response(Bun.file("./src/web/index.html"), {
+          return new Response(Bun.file("./dist/web/index.html"), {
             headers: {
               "Content-Type": "text/html",
             },
@@ -35,46 +73,38 @@ const trpcHandler = createBunServeHandler(
         }
       }
 
-      // Serve JavaScript files from dist directory
-      if (url.pathname.endsWith(".js")) {
-        const filePath = `./dist${url.pathname}`;
+      // Serve static assets from Vite build
+      if (url.pathname.startsWith("/assets/")) {
+        const filePath = `./dist/web${url.pathname}`;
         try {
-          return new Response(Bun.file(filePath), {
+          const file = Bun.file(filePath);
+          const contentType = getContentType(url.pathname);
+          return new Response(file, {
             headers: {
-              "Content-Type": "application/javascript",
+              "Content-Type": contentType,
+              "Cache-Control": "public, max-age=31536000", // 1 year cache for assets
             },
           });
         } catch (error) {
-          return new Response("JS file not found", { status: 404 });
+          return new Response("Asset not found", { status: 404 });
         }
       }
 
-      // Serve CSS files from dist directory
-      if (url.pathname.endsWith(".css")) {
-        const filePath = `./dist${url.pathname}`;
+      // Serve other static files (favicon, etc.)
+      if (
+        url.pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)
+      ) {
+        const filePath = `./dist/web${url.pathname}`;
         try {
-          return new Response(Bun.file(filePath), {
+          const file = Bun.file(filePath);
+          const contentType = getContentType(url.pathname);
+          return new Response(file, {
             headers: {
-              "Content-Type": "text/css",
-              "Access-Control-Allow-Origin": "*",
+              "Content-Type": contentType,
             },
           });
         } catch (error) {
-          return new Response("CSS file not found", { status: 404 });
-        }
-      }
-
-      // Serve source maps
-      if (url.pathname.endsWith(".js.map")) {
-        const filePath = `./dist${url.pathname}`;
-        try {
-          return new Response(Bun.file(filePath), {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-        } catch (error) {
-          return new Response("Source map not found", { status: 404 });
+          return new Response("File not found", { status: 404 });
         }
       }
 
