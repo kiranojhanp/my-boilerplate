@@ -6,7 +6,7 @@ import {
   TodoPriority as TodoPrioritySchema,
   TodoStatus as TodoStatusSchema,
   TodoCategory as TodoCategorySchema,
-} from "@/server/features/todo/schemas";
+} from "@/features/todo/types";
 
 // Infer types from the tRPC router
 type RouterInputs = inferRouterInputs<AppRouter>;

@@ -5,7 +5,8 @@ import {
   ListTodosInputSchema,
   TodoIdSchema,
   UpdateSubtaskInputSchema,
-} from "./schemas";
+  StatsQuerySchema,
+} from "@/features/todo/types";
 import { TodoService } from "./service";
 
 export const todoRouter = router({
@@ -48,20 +49,22 @@ export const todoRouter = router({
   }),
 
   // Get statistics
-  getStats: loggedProcedure.query(async () => {
-    return TodoService.getStats();
+  getStats: loggedProcedure.input(StatsQuerySchema).query(async ({ input }) => {
+    return TodoService.getStats(input.period);
   }),
 
   // Update a subtask
   updateSubtask: loggedProcedure
     .input(UpdateSubtaskInputSchema)
     .mutation(async ({ input }) => {
-      const subtask = await TodoService.updateSubtask({
-        subtaskId: input.subtaskId,
-        todoId: input.todoId,
-        completed: input.completed,
-        title: input.title,
-      });
+      const subtask = await TodoService.updateSubtask(
+        input.todoId,
+        input.subtaskId,
+        {
+          title: input.title,
+          completed: input.completed,
+        }
+      );
       if (!subtask) {
         throw new Error("Subtask not found or update failed");
       }

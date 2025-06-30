@@ -20,7 +20,8 @@
     "format": "prettier --write src/**/*.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "create-feature": "bun run scripts/create-feature.ts"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",

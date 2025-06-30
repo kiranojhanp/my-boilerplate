@@ -13,3 +13,5 @@ export {
   useDeleteTodo,
   useUpdateSubtask,
 } from "./hooks/useTodos";
+
+export { todoRoutes } from "./routes";

@@ -1,26 +1,22 @@
 import { trpc } from "@/web/shared/lib/trpc";
 import type {
-  TodoFilters,
+  ListTodosInput,
   CreateTodoInput,
   UpdateTodoInput,
-} from "@/web/shared/types";
+} from "@/features/todo/types";
 
-export function useTodos(filters: TodoFilters = {}) {
-  return trpc.todo.list.useQuery({
-    ...filters,
-    status: filters.status || undefined,
-    priority: filters.priority || undefined,
-    category: filters.category || undefined,
-    search: filters.search || undefined,
-  });
+export function useTodos(filters: Partial<ListTodosInput> = {}) {
+  return trpc.todo.list.useQuery(filters);
 }
 
 export function useTodoById(id: string) {
   return trpc.todo.getById.useQuery({ id });
 }
 
-export function useTodoStats() {
-  return trpc.todo.getStats.useQuery();
+export function useTodoStats(
+  period: "day" | "week" | "month" | "year" = "week"
+) {
+  return trpc.todo.getStats.useQuery({ period });
 }
 
 export function useCreateTodo() {
