@@ -1,12 +1,12 @@
 // Import inferred types from server tRPC router
-import type { AppRouter } from "../../../server/trpc/router";
+import type { AppRouter } from "@/server/trpc/router";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { z } from "zod";
 import {
   TodoPriority as TodoPrioritySchema,
   TodoStatus as TodoStatusSchema,
   TodoCategory as TodoCategorySchema,
-} from "../../../server/features/todo/schemas";
+} from "@/server/features/todo/schemas";
 
 // Infer types from the tRPC router
 type RouterInputs = inferRouterInputs<AppRouter>;

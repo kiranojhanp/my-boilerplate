@@ -7,7 +7,7 @@ import {
   wsLink,
 } from "@trpc/react-query";
 import superjson from "superjson";
-import type { AppRouter } from "../../../server/trpc/router";
+import type { AppRouter } from "@/server/trpc/router";
 
 export const trpc = createTRPCReact<AppRouter>();
 

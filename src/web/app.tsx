@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { trpc, createTRPCClient, createQueryClient } from "./shared/lib/trpc";
-import { AppRouter, createAppRouter } from "./router";
+import {
+  trpc,
+  createTRPCClient,
+  createQueryClient,
+} from "@/web/shared/lib/trpc";
+import { AppRouter, createAppRouter } from "@/web/router";
 import "./app.css";
 
 function App() {

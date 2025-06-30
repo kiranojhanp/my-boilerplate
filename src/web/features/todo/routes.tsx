@@ -1,5 +1,5 @@
 import React from "react";
-import type { RouteConfig, RouteMetadata } from "../../shared/types/routes";
+import type { RouteConfig, RouteMetadata } from "@/web/shared/types/routes";
 import { TodoDashboard } from "./components/TodoDashboard";
 
 // Route metadata for navigation

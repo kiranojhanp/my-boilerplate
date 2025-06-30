@@ -1,5 +1,5 @@
-import { publicProcedure, router } from "../shared/trpc/trpc";
-import { todoRouter } from "../features/todo";
+import { publicProcedure, router } from "@/server/shared/trpc/trpc";
+import { todoRouter } from "@/server/features/todo";
 import { sleep } from "bun";
 
 // Main application router

@@ -1,4 +1,4 @@
-import { router, loggedProcedure } from "../../shared/trpc/trpc";
+import { router, loggedProcedure } from "@/server/shared/trpc/trpc";
 import {
   CreateTodoInputSchema,
   UpdateTodoInputSchema,

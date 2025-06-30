@@ -1,7 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import superjson from "superjson";
-import { logger } from "../utils/logger";
+import { logger } from "@/server/shared/utils/logger";
 
 // Context type for tRPC
 export interface Context {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getNavigationRoutes } from "../../../router/registry";
+import { getNavigationRoutes } from "@/web/router/registry";
 
 export function Navigation() {
   const location = useLocation();

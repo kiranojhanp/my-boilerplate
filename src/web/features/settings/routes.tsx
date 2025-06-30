@@ -1,5 +1,5 @@
 import React from "react";
-import type { RouteConfig, RouteMetadata } from "../../shared/types/routes";
+import type { RouteConfig, RouteMetadata } from "@/web/shared/types/routes";
 import { Settings } from "./index";
 
 // Route metadata for navigation

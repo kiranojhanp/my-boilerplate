@@ -2,15 +2,15 @@ import type {
   RouteConfig,
   RouteMetadata,
   FeatureRoutes,
-} from "../shared/types/routes";
+} from "@/web/shared/types/routes";
 
 // Import feature routes
-import { todoRoutes, todoRouteMetadata } from "../features/todo/routes";
-import { aboutRoutes, aboutRouteMetadata } from "../features/about/routes";
+import { todoRoutes, todoRouteMetadata } from "@/web/features/todo/routes";
+import { aboutRoutes, aboutRouteMetadata } from "@/web/features/about/routes";
 import {
   settingsRoutes,
   settingsRouteMetadata,
-} from "../features/settings/routes";
+} from "@/web/features/settings/routes";
 
 // Registry of all feature routes
 const featureRoutes: FeatureRoutes[] = [

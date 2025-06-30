@@ -1,7 +1,7 @@
-import { appRouter } from "./server/trpc/router";
-import { logger } from "./server/shared/utils/logger";
+import { appRouter } from "@/server/trpc/router";
+import { logger } from "@/server/shared/utils/logger";
 import { createBunServeHandler } from "trpc-bun-adapter";
-import { initializeDatabase, closeDatabase } from "./server/shared/db";
+import { initializeDatabase, closeDatabase } from "@/server/shared/db";
 
 // Initialize database
 await initializeDatabase();

@@ -1,12 +1,12 @@
 import React, { useState, memo, useCallback } from "react";
 import styles from "./styles.module.css";
-import { Button, Badge } from "../../../../shared/components";
+import { Button, Badge } from "@/web/shared/components";
 import {
   useUpdateTodo,
   useDeleteTodo,
   useUpdateSubtask,
 } from "../../hooks/useTodos";
-import type { Todo, TodoStatus } from "../../../../shared/types";
+import type { Todo, TodoStatus } from "@/web/shared/types";
 
 interface TodoCardProps {
   todo: Todo;

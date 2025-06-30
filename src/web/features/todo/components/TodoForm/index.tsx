@@ -6,7 +6,7 @@ import {
   Textarea,
   Select,
   ErrorAlert,
-} from "../../../../shared/components";
+} from "@/web/shared/components";
 import { useCreateTodo, useUpdateTodo } from "../../hooks/useTodos";
 import type {
   Todo,
@@ -14,7 +14,7 @@ import type {
   TodoCategory,
   CreateTodoInput,
   UpdateTodoInput,
-} from "../../../../shared/types";
+} from "@/web/shared/types";
 
 interface TodoFormProps {
   todo?: Todo;

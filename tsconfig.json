@@ -14,6 +14,16 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
 
+    // Base URL for absolute imports
+    "baseUrl": ".",
+
+    // Path mapping for cleaner imports
+    "paths": {
+      "@/*": ["src/*"],
+      "@/server/*": ["src/server/*"],
+      "@/web/*": ["src/web/*"]
+    },
+
     // Best practices
     "strict": true,
     "skipLibCheck": true,

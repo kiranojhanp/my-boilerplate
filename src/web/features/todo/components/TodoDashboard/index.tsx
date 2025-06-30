@@ -3,11 +3,11 @@ import styles from "./styles.module.css";
 import { TodoHeader } from "../TodoHeader";
 import { TodoFiltersComponent } from "../TodoFilters";
 import { TodoCard } from "../TodoCard";
-import { Modal } from "../../../../shared/components/Modal";
+import { Modal } from "@/web/shared/components/Modal";
 import { TodoForm } from "../TodoForm";
-import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
+import { LoadingSpinner } from "@/web/shared/components/LoadingSpinner";
 import { useTodos } from "../../hooks/useTodos";
-import type { TodoFilters, Todo } from "../../../../shared/types";
+import type { TodoFilters, Todo } from "@/web/shared/types";
 
 const TodoDashboard: React.FC = memo(() => {
   const [showCreateForm, setShowCreateForm] = useState(false);

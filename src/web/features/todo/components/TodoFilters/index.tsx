@@ -5,7 +5,7 @@ import type {
   TodoStatus,
   TodoPriority,
   TodoCategory,
-} from "../../../../shared/types";
+} from "@/web/shared/types";
 
 interface TodoFiltersProps {
   filters: TodoFilters;

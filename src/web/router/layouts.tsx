@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { Navigation } from "../shared/components";
+import { Navigation } from "@/web/shared/components";
 
 // Main layout component
 export function AppLayout() {

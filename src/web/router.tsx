@@ -1,8 +1,8 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
-import { mergeFeatureRoutes } from "./router/registry";
-import { AppLayout, ErrorLayout, NotFoundPage } from "./router/layouts";
+import { mergeFeatureRoutes } from "@/web/router/registry";
+import { AppLayout, ErrorLayout, NotFoundPage } from "@/web/router/layouts";
 
 // Build routes dynamically from feature routes
 function buildRoutes(): RouteObject[] {
