@@ -17,47 +17,21 @@ const trpcHandler = createBunServeHandler(
     async fetch(request, server) {
       const url = new URL(request.url);
 
-      // Server-side rendering for the main page
-      if (url.pathname === "/") {
+      // Serve the SPA for all routes that should use client-side routing
+      if (
+        url.pathname === "/" ||
+        url.pathname.startsWith("/todos") ||
+        url.pathname === "/about"
+      ) {
         try {
-          // Dynamic import to avoid bundling issues
-          const { renderSSR } = await import("./web/app.ssr");
-          const { html, dehydratedState } = await renderSSR(
-            `http://localhost:${server.port}`
-          );
-
-          const fullHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo Manager</title>
-    <link rel="stylesheet" href="/app.css">
-    <link rel="stylesheet" href="/app.ssr.css">
-</head>
-<body>
-    <div id="root">${html}</div>
-    <script>
-      window.__DEHYDRATED_STATE__ = ${JSON.stringify(dehydratedState)};
-    </script>
-    <script type="module" src="/app.js"></script>
-</body>
-</html>`;
-
-          return new Response(fullHtml, {
-            headers: {
-              "Content-Type": "text/html",
-            },
-          });
-        } catch (error) {
-          logger.error("SSR Error:", error);
-          // Fallback to CSR
           return new Response(Bun.file("./src/web/index.html"), {
             headers: {
               "Content-Type": "text/html",
             },
           });
+        } catch (error) {
+          logger.error("Error serving HTML:", error);
+          return new Response("Error loading page", { status: 500 });
         }
       }
 

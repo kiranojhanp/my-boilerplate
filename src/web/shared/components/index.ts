@@ -7,3 +7,4 @@ export { Modal } from "./Modal";
 export { Card } from "./Card";
 export { LoadingSpinner } from "./LoadingSpinner";
 export { ErrorAlert } from "./ErrorAlert";
+export { Navigation } from "./Navigation";
