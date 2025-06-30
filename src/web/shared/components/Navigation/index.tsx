@@ -1,8 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { getNavigationRoutes } from "../../../router/registry";
 
 export function Navigation() {
   const location = useLocation();
+  const navigationRoutes = getNavigationRoutes();
 
   const navStyle: React.CSSProperties = {
     display: "flex",
@@ -29,24 +31,16 @@ export function Navigation() {
 
   return (
     <nav style={navStyle}>
-      <Link
-        to="/"
-        style={location.pathname === "/" ? activeLinkStyle : linkStyle}
-      >
-        Dashboard
-      </Link>
-      <Link
-        to="/todos"
-        style={location.pathname === "/todos" ? activeLinkStyle : linkStyle}
-      >
-        All Todos
-      </Link>
-      <Link
-        to="/about"
-        style={location.pathname === "/about" ? activeLinkStyle : linkStyle}
-      >
-        About
-      </Link>
+      {navigationRoutes.map((route) => (
+        <Link
+          key={route.path}
+          to={route.path}
+          style={location.pathname === route.path ? activeLinkStyle : linkStyle}
+          title={route.description}
+        >
+          {route.title}
+        </Link>
+      ))}
     </nav>
   );
 }

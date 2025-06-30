@@ -1,66 +1,31 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
-import { TodoDashboard } from "./features/todo";
-import { About } from "./features/about";
-import { ErrorAlert, Navigation } from "./shared/components";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import type { RouteObject } from "react-router-dom";
+import { mergeFeatureRoutes } from "./router/registry";
+import { AppLayout, ErrorLayout, NotFoundPage } from "./router/layouts";
 
-// Layout component
-function Layout() {
-  return (
-    <div
-      style={{
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "20px",
-        color: "#2d3748",
-      }}
-    >
-      <Navigation />
-      <Outlet />
-    </div>
-  );
+// Build routes dynamically from feature routes
+function buildRoutes(): RouteObject[] {
+  const featureRoutes = mergeFeatureRoutes();
+
+  return [
+    {
+      path: "/",
+      element: <AppLayout />,
+      errorElement: <ErrorLayout />,
+      children: [
+        ...featureRoutes,
+        {
+          path: "*",
+          element: <NotFoundPage />,
+        },
+      ],
+    },
+  ];
 }
 
-// Define routes
-const routes = [
-  {
-    path: "/",
-    element: <Layout />,
-    errorElement: (
-      <div style={{ padding: "20px" }}>
-        <ErrorAlert message="Something went wrong loading this page." />
-      </div>
-    ),
-    children: [
-      {
-        index: true,
-        element: <TodoDashboard />,
-      },
-      {
-        path: "todos",
-        element: <TodoDashboard />,
-      },
-      {
-        path: "about",
-        element: <About />,
-      },
-      {
-        path: "*",
-        element: (
-          <div style={{ padding: "20px", textAlign: "center" }}>
-            <h2>Page Not Found</h2>
-            <p>The page you're looking for doesn't exist.</p>
-            <a href="/" style={{ color: "var(--color-primary)" }}>
-              Go back home
-            </a>
-          </div>
-        ),
-      },
-    ],
-  },
-];
+// Cache routes for performance
+const routes = buildRoutes();
 
 // Create browser router for client-side
 export function createAppRouter() {
