@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createTRPCReact,
   createWSClient,
-  httpLink,
+  httpBatchLink,
   splitLink,
   wsLink,
 } from "@trpc/react-query";
@@ -22,7 +22,7 @@ export function createTRPCClient() {
           }),
           transformer: superjson,
         }),
-        false: httpLink({
+        false: httpBatchLink({
           url: "http://localhost:3000/trpc",
           transformer: superjson,
         }),
