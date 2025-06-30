@@ -1,6 +1,20 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import type { RouteConfig, RouteMetadata } from "@/web/shared/types/routes";
-import { TodoDashboard } from "./components/TodoDashboard";
+import { LoadingSpinner } from "@/web/shared/components/LoadingSpinner";
+
+// Lazy load components for code splitting
+const TodoDashboard = lazy(() =>
+  import("./components/TodoDashboard").then((m) => ({
+    default: m.TodoDashboard,
+  }))
+);
+
+// Wrapper component for Suspense
+const LazyTodoDashboard = () => (
+  <Suspense fallback={<LoadingSpinner />}>
+    <TodoDashboard />
+  </Suspense>
+);
 
 // Route metadata for navigation
 export const todoRouteMetadata: RouteMetadata[] = [
@@ -22,11 +36,11 @@ export const todoRouteMetadata: RouteMetadata[] = [
 export const todoRoutes: RouteConfig[] = [
   {
     index: true,
-    element: <TodoDashboard />,
+    element: <LazyTodoDashboard />,
   },
   {
     path: "todos",
-    element: <TodoDashboard />,
+    element: <LazyTodoDashboard />,
   },
   // Future todo-related routes can be added here
   // {

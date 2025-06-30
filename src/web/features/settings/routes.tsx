@@ -1,6 +1,18 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import type { RouteConfig, RouteMetadata } from "@/web/shared/types/routes";
-import { Settings } from "./index";
+import { LoadingSpinner } from "@/web/shared/components/LoadingSpinner";
+
+// Lazy load components for code splitting
+const Settings = lazy(() =>
+  import("./index").then((m) => ({ default: m.Settings }))
+);
+
+// Wrapper component for Suspense
+const LazySettings = () => (
+  <Suspense fallback={<LoadingSpinner />}>
+    <Settings />
+  </Suspense>
+);
 
 // Route metadata for navigation
 export const settingsRouteMetadata: RouteMetadata[] = [
@@ -16,7 +28,7 @@ export const settingsRouteMetadata: RouteMetadata[] = [
 export const settingsRoutes: RouteConfig[] = [
   {
     path: "settings",
-    element: <Settings />,
+    element: <LazySettings />,
   },
   // You can easily add sub-routes:
   // {
