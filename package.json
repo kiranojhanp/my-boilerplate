@@ -1,7 +1,7 @@
 {
-  "name": "simple-todo-api",
+  "name": "basic-api",
   "version": "1.0.0",
-  "description": "Simple Todo API built with Bun, TypeScript, and tRPC",
+  "description": "LLM-Optimized Full-Stack TypeScript API with Bun, tRPC, and React",
   "main": "src/backend/main.ts",
   "type": "module",
   "private": true,

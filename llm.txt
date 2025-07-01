@@ -1,10 +1,17 @@
 # LLM Development Guide
 
+## Quick Start
+```bash
+bun install
+bun run dev                 # Start development servers
+bun run create-feature item # Generate new feature
+```
+
 ## Architecture Overview
 ```
 src/
-├── backend/     # Server infrastructure
-├── frontend/    # Client infrastructure  
+├── backend/     # Server infrastructure (tRPC, database, schemas)
+├── frontend/    # Client infrastructure (React, routing, components)  
 ├── features/    # Business features (5-file pattern)
 ```
 
@@ -21,8 +28,9 @@ src/features/{name}/
 
 ## Creating Features
 ```bash
-bun run create-feature invoice  # Generates scaffold
+bun run create-feature <name>  # Generates complete scaffold
 ```
+Auto-generates: types.ts, backend.ts, frontend.tsx, routes.tsx, index.ts
 
 ## Integration Steps
 1. Add router to `src/backend/router.ts`:
@@ -172,19 +180,46 @@ export const items = sqliteTable('items', {
 
 ## Development Commands
 ```bash
-bun run dev:full        # Start both servers
-bun run create-feature  # Generate new feature
+bun run dev             # Start both servers with hot reload
+bun run create-feature  # Generate new feature scaffold
+bun run build           # Build for production
+bun run start           # Start production server
 bun run db:generate     # Generate migrations
 bun run db:migrate      # Run migrations
 ```
 
-## Key Patterns
-- All feature code in 5 files per feature
-- Auto-generated Zod schemas from Drizzle tables (drizzle-zod)
-- TypeScript types inferred from schemas (single source of truth)
-- tRPC for type-safe API calls
-- React Query for caching (via tRPC)
-- Global components for UI consistency
-- Lazy-loaded routes for performance
+## Key Patterns & Architecture
+- **5-file feature pattern**: All business logic in standardized structure
+- **Type safety**: Drizzle ORM → Zod schemas → TypeScript types
+- **Auto-generated APIs**: tRPC procedures with full type inference
+- **Single process**: Backend API + Frontend SPA in one server
+- **Hot reload**: Vite frontend + Bun backend watching
+- **Zero config**: Sensible defaults, minimal setup required
+
+## Tech Stack
+- **Runtime**: Bun (fast, built-in bundler/runtime)
+- **Language**: TypeScript (strict mode, full stack)
+- **Backend**: tRPC + Drizzle ORM + SQLite + Zod
+- **Frontend**: React 18 + React Router + TanStack Query
+- **Build**: Vite (frontend) + Bun (backend)
 
 ## Example: See src/features/todo/ for complete reference implementation
+
+## LLM Development Tips
+- **Feature-first**: Always work within the 5-file pattern
+- **Type-driven**: Start with database schema, generate types automatically
+- **Reference todo/**: Copy patterns from existing todo feature
+- **Incremental**: Build one endpoint/component at a time
+- **Test immediately**: Use `bun run dev` to see changes instantly
+
+## Common Workflows
+1. **New feature**: `bun run create-feature <name>` → edit files → integrate
+2. **Database changes**: Edit schemas.ts → `bun run db:generate` → `bun run db:migrate`
+3. **API endpoint**: Add to backend.ts → auto-available in frontend via tRPC
+4. **UI component**: Add to frontend.tsx → wire up with tRPC hooks
+
+## Error Patterns
+- Import errors? Check path aliases (@/backend, @/frontend, @/features)
+- Type errors? Regenerate schemas with drizzle-zod
+- Runtime errors? Check database migrations are current
+- Build errors? Ensure all exports in index.ts files

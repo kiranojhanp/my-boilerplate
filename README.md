@@ -1,6 +1,6 @@
 # 🎯 LLM-Optimized Full-Stack TypeScript API
 
-A **production-ready**, **LLM-friendly** codebase built with **Bun**, **TypeScript**, **tRPC**, and **React**. Optimized for AI-assisted development with consolidated feature structure.
+A **production-ready**, **LLM-friendly** boilerplate built with **Bun**, **TypeScript**, **tRPC**, and **React**. Features a single-process architecture with embedded SPA frontend, optimized for AI-assisted development with consolidated 5-file feature pattern.
 
 ## 🎯 **Why This Boilerplate Exists**
 
@@ -23,11 +23,11 @@ This boilerplate provides exactly that - a **standalone TypeScript API** with an
 # Install dependencies
 bun install
 
-# Set up environment
+# Set up environment (optional)
 cp .env.example .env
 
-# Start development (with fast HMR)
-bun run dev:full
+# Start development with hot reload
+bun run dev
 ```
 
 **Development URLs:**
@@ -68,48 +68,33 @@ bun run build:all && bun run start
 ## 🔧 **Available Scripts**
 
 ```bash
-# Development (Fast HMR with Vite)
-bun run dev              # Backend server only (http://localhost:3000)
-bun run dev:web          # Frontend dev server only (http://localhost:5173)  
-bun run dev:full         # Both servers concurrently (recommended)
+# Development
+bun run dev              # Backend and frontend concurrently (recommended)
 
 # Production
 bun run start            # Production server with built frontend
-bun run start:dev        # Development server without NODE_ENV=production
 
 # Building
-bun run build            # Build backend
-bun run build:web        # Build frontend
-bun run build:all        # Build both
+bun run build            # Build backend for production
+bun run build:analyze    # Build with bundle analyzer
 
 # Database
 bun run db:generate      # Generate Drizzle migrations
 bun run db:migrate       # Run migrations
-bun run db:studio        # Open Drizzle Studio
 
 # Feature Development
 bun run create-feature <name>  # Generate new feature scaffold
-
-# Code Quality
-bun run lint             # ESLint
-bun run format           # Prettier
-bun test                 # Run tests
 ```
 
 ## 🌍 **Environment Variables**
 
-Copy `.env.example` to `.env`:
+Copy `.env.example` to `.env` (optional - defaults work out of the box):
 
 ```bash
-# Server
+# Server Configuration
 PORT=3000
+VITE_PORT=5173
 NODE_ENV=development
-
-# Database  
-DATABASE_URL="file:./todo.db"
-
-# CORS (optional)
-CORS_ORIGIN="http://localhost:5173"
 ```
 
 ## 📊 **Example: Todo Feature API**
@@ -184,3 +169,22 @@ This codebase is optimized for AI assistance. LLMs can:
 - ✅ Navigate the codebase easily with predictable structure
 
 **Start coding with AI assistance - the structure is designed for excellent LLM support!** 🚀
+
+---
+
+## 📋 **Quick Reference**
+
+**Most used commands:**
+```bash
+bun run dev                    # Development with hot reload
+bun run create-feature <name>  # New feature scaffold
+bun run build && bun run start # Production deployment
+```
+
+**Key files to modify:**
+- `src/backend/schemas.ts` - Database tables
+- `src/backend/router.ts` - API routing
+- `src/frontend/router.tsx` - Frontend routing
+- `src/features/<name>/` - Feature implementation
+
+**Need help?** Check `llm.txt` for complete development patterns and examples.
