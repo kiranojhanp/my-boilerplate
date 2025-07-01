@@ -1,611 +1,547 @@
-#!/usr/bin/env bun
-
-/**
- * 🎯 LLM-Optimized Feature Generator
- * Creates new features using the consolidated, token-efficient structure
- * 
- * Usage: bun run scripts/create-feature.ts <featureName>
- */
-
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
+import fs from "fs";
+import path from "path";
+import pluralize from "pluralize";
 
 const featureName = process.argv[2];
 
 if (!featureName) {
-  console.error("Please provide a feature name: bun run scripts/create-feature.ts <featureName>");
+  console.error("Please provide a feature name.");
   process.exit(1);
 }
 
-const capitalizedName = featureName.charAt(0).toUpperCase() + featureName.slice(1);
-const featuresDir = join(process.cwd(), "src", "features", featureName);
+const featurePlural = pluralize(featureName);
 
-async function createLLMOptimizedFeature() {
-  try {
-    // Create feature directory
-    await mkdir(featuresDir, { recursive: true });
+const featureDir = path.join("src", "features", featureName);
 
-    // 1. Create types.ts - All schemas and types
-    const typesContent = `/**
- * 🏷️ ${capitalizedName.toUpperCase()} TYPES
+if (fs.existsSync(featureDir)) {
+  console.error(`Feature "${featureName}" already exists.`);
+  process.exit(1);
+}
+
+fs.mkdirSync(featureDir, { recursive: true });
+
+const files = [
+  {
+    name: "index.ts",
+    content: `/**
+ * 🎯 ${featureName.toUpperCase()} FEATURE
+ * Complete ${featureName} functionality
+ * 
+ * BACKEND: ${capitalize(featureName)}Service, ${featureName}Router
+ * FRONTEND: ${capitalize(featureName)}Dashboard, ${capitalize(featureName)}Form, ${capitalize(featureName)}Card, use${capitalize(featureName)}s, useCreate${capitalize(featureName)}
+ * TYPES: ${capitalize(featureName)}, Create${capitalize(featureName)}Input, etc.
+ * 
+ * 🔗 INTEGRATION REQUIRED:
+ * 1. Add ${featureName}Router to src/backend/router.ts
+ * 2. Add ${featureName}Routes to src/frontend/router.tsx  
+ * 3. Update database schemas if needed
+ */
+
+// Backend exports
+export * from './backend'
+
+// Frontend exports  
+export * from './frontend'
+
+// Types exports
+export * from './types'
+
+// Routes exports (if needed)
+// export * from './routes'
+`,
+  },
+  {
+    name: "types.ts",
+    content: `/**
+ * 🏷️ ${featureName.toUpperCase()} TYPES
  * All TypeScript types and Zod schemas for ${featureName} feature
  * Shared between backend and frontend
  */
 
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-// Import your database schema when ready
-// import { ${featureName}s } from "@/backend/schemas";
 
-// ===== ZOD SCHEMAS =====
-// TODO: Replace with auto-generated schemas from Drizzle
-export const ${capitalizedName}Schema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "Name is required").max(200),
-  description: z.string().optional(),
+// ===== BASE SCHEMAS =====
+export const ${capitalize(featureName)}Schema = z.object({
+  id: z.number(),
+  name: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
 
-export const Create${capitalizedName}InputSchema = ${capitalizedName}Schema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  name: z.string().min(1, "Name is required").max(200),
+// ===== INPUT SCHEMAS =====
+export const Create${capitalize(featureName)}InputSchema = z.object({
+  name: z.string().min(1, "Name is required"),
 });
 
-export const Update${capitalizedName}InputSchema = Create${capitalizedName}InputSchema.partial().extend({
-  id: z.string().min(1, "${capitalizedName} ID is required"),
+export const Update${capitalize(featureName)}InputSchema = z.object({
+  id: z.number(),
+  name: z.string().min(1, "Name is required").optional(),
 });
 
-export const ${capitalizedName}IdSchema = z.object({
-  id: z.string().min(1, "${capitalizedName} ID is required"),
-});
-
-// ===== TYPESCRIPT TYPES =====
-export type ${capitalizedName} = z.infer<typeof ${capitalizedName}Schema>;
-export type Create${capitalizedName}Input = z.infer<typeof Create${capitalizedName}InputSchema>;
-export type Update${capitalizedName}Input = z.infer<typeof Update${capitalizedName}InputSchema>;
-`;
-
-    // 2. Create backend.ts - Complete server logic
-    const backendContent = `/**
- * 🖥️ ${capitalizedName.toUpperCase()} BACKEND
+// ===== TYPES =====
+export type ${capitalize(featureName)} = z.infer<typeof ${capitalize(featureName)}Schema>;
+export type Create${capitalize(featureName)}Input = z.infer<typeof Create${capitalize(featureName)}InputSchema>;
+export type Update${capitalize(featureName)}Input = z.infer<typeof Update${capitalize(featureName)}InputSchema>;
+`,
+  },
+  {
+    name: "backend.ts",
+    content: `/**
+ * 🖥️ ${featureName.toUpperCase()} BACKEND
  * All server-side logic for ${featureName} feature
- * - Database operations (${capitalizedName}Service)
- * - Business logic  
+ * - Database operations (${capitalize(featureName)}Service)
+ * - Business logic
  * - tRPC routes (${featureName}Router)
+ * 
+ * 🔗 INTEGRATION: Add to src/backend/router.ts:
+ * import { ${featureName}Router } from '@/features/${featureName}/backend';
+ * 
+ * export const appRouter = router({
+ *   // ...existing routes...
+ *   ${featureName}: ${featureName}Router,
+ * });
  */
 
 import { router, loggedProcedure } from "@/backend/trpc";
-import { db } from "@/backend/database";
-// TODO: Import your database schema
-// import { ${featureName}s } from "@/backend/schemas";
 import { logger } from "@/backend/utils";
-import { eq } from "drizzle-orm";
+import { z } from "zod";
 import {
-  Create${capitalizedName}InputSchema,
-  Update${capitalizedName}InputSchema,
-  ${capitalizedName}IdSchema,
+  Create${capitalize(featureName)}InputSchema,
+  Update${capitalize(featureName)}InputSchema,
 } from "./types";
 import type {
-  ${capitalizedName},
-  Create${capitalizedName}Input,
-  Update${capitalizedName}Input,
+  ${capitalize(featureName)},
+  Create${capitalize(featureName)}Input,
+  Update${capitalize(featureName)}Input,
 } from "./types";
 
-// ===== ${capitalizedName.toUpperCase()} SERVICE =====
-export class ${capitalizedName}Service {
-  static async create${capitalizedName}(data: Create${capitalizedName}Input): Promise<${capitalizedName}> {
-    // TODO: Implement database creation
-    logger.info(\`Creating ${featureName}: \${data.name}\`);
-    
-    // Placeholder implementation
-    const ${featureName}: ${capitalizedName} = {
-      id: \`${featureName}_\${Date.now()}\`,
-      name: data.name,
-      description: data.description,
+// ===== ${featureName.toUpperCase()} SERVICE =====
+export class ${capitalize(featureName)}Service {
+  static async getAll(): Promise<${capitalize(featureName)}[]> {
+    logger.info(\`Getting all ${featureName}s\`);
+    // TODO: Implement database query
+    return [
+      {
+        id: 1,
+        name: \`Sample ${capitalize(featureName)}\`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+  }
+
+  static async getById(id: number): Promise<${capitalize(featureName)} | null> {
+    logger.info(\`Getting ${featureName} by id: \${id}\`);
+    // TODO: Implement database query
+    return {
+      id,
+      name: \`Sample ${capitalize(featureName)} \${id}\`,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
-    return ${featureName};
   }
 
-  static async get${capitalizedName}s(): Promise<${capitalizedName}[]> {
-    // TODO: Implement database query
-    logger.info("Fetching all ${featureName}s");
-    
-    // Placeholder implementation
-    return [];
+  static async create(input: Create${capitalize(featureName)}Input): Promise<${capitalize(featureName)}> {
+    logger.info(\`Creating ${featureName}: \${input.name}\`);
+    // TODO: Implement database insert
+    return {
+      id: Date.now(),
+      name: input.name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
 
-  static async get${capitalizedName}ById(id: string): Promise<${capitalizedName} | null> {
-    // TODO: Implement database query
-    logger.info(\`Fetching ${featureName} with ID: \${id}\`);
-    
-    // Placeholder implementation
-    return null;
-  }
-
-  static async update${capitalizedName}(data: Update${capitalizedName}Input): Promise<${capitalizedName} | null> {
+  static async update(input: Update${capitalize(featureName)}Input): Promise<${capitalize(featureName)}> {
+    logger.info(\`Updating ${featureName}: \${input.id}\`);
     // TODO: Implement database update
-    logger.info(\`Updating ${featureName} with ID: \${data.id}\`);
-    
-    // Placeholder implementation
-    return null;
+    const existing = await this.getById(input.id);
+    if (!existing) {
+      throw new Error(\`${capitalize(featureName)} not found\`);
+    }
+    return {
+      ...existing,
+      ...input,
+      updatedAt: new Date(),
+    };
   }
 
-  static async delete${capitalizedName}(id: string): Promise<boolean> {
-    // TODO: Implement database deletion
-    logger.info(\`Deleting ${featureName} with ID: \${id}\`);
-    
-    // Placeholder implementation
-    return true;
+  static async delete(id: number): Promise<void> {
+    logger.info(\`Deleting ${featureName}: \${id}\`);
+    // TODO: Implement database delete
   }
 }
 
-// ===== ${capitalizedName.toUpperCase()} API ROUTER =====
+// ===== ${featureName.toUpperCase()} ROUTER =====
 export const ${featureName}Router = router({
-  // Create a new ${featureName}
-  create: loggedProcedure
-    .input(Create${capitalizedName}InputSchema)
-    .mutation(async ({ input }) => {
-      return ${capitalizedName}Service.create${capitalizedName}(input);
-    }),
+  list: loggedProcedure.query(async () => {
+    return await ${capitalize(featureName)}Service.getAll();
+  }),
 
-  // Get all ${featureName}s
-  list: loggedProcedure
-    .query(async () => {
-      return ${capitalizedName}Service.get${capitalizedName}s();
-    }),
-
-  // Get a single ${featureName} by ID
   getById: loggedProcedure
-    .input(${capitalizedName}IdSchema)
-    .query(async ({ input }) => {
-      const ${featureName} = await ${capitalizedName}Service.get${capitalizedName}ById(input.id);
-      if (!${featureName}) {
-        throw new Error("${capitalizedName} not found");
-      }
-      return ${featureName};
+    .input(z.number())
+    .query(async ({ input: id }) => {
+      return await ${capitalize(featureName)}Service.getById(id);
     }),
 
-  // Update a ${featureName}
+  create: loggedProcedure
+    .input(Create${capitalize(featureName)}InputSchema)
+    .mutation(async ({ input }) => {
+      return await ${capitalize(featureName)}Service.create(input);
+    }),
+
   update: loggedProcedure
-    .input(Update${capitalizedName}InputSchema)
+    .input(Update${capitalize(featureName)}InputSchema)
     .mutation(async ({ input }) => {
-      const ${featureName} = await ${capitalizedName}Service.update${capitalizedName}(input);
-      if (!${featureName}) {
-        throw new Error("${capitalizedName} not found or update failed");
-      }
-      return ${featureName};
+      return await ${capitalize(featureName)}Service.update(input);
     }),
 
-  // Delete a ${featureName}
   delete: loggedProcedure
-    .input(${capitalizedName}IdSchema)
-    .mutation(async ({ input }) => {
-      const success = await ${capitalizedName}Service.delete${capitalizedName}(input.id);
-      return { success, id: input.id };
+    .input(z.number())
+    .mutation(async ({ input: id }) => {
+      await ${capitalize(featureName)}Service.delete(id);
+      return { success: true };
     }),
 });
-`;
-
-    // 3. Create frontend.tsx - Complete client logic
-    const frontendContent = `/**
- * 🌐 ${capitalizedName.toUpperCase()} FRONTEND
+`,
+  },
+  {
+    name: "frontend.tsx",
+    content: `/**
+ * 🌐 ${featureName.toUpperCase()} FRONTEND
  * All client-side code for ${featureName} feature
- * - React components (${capitalizedName}List, ${capitalizedName}Form, etc.)
- * - Custom hooks (use${capitalizedName}s, useCreate${capitalizedName}, etc.)
+ * - React components (${capitalize(featureName)}Dashboard, ${capitalize(featureName)}Form, ${capitalize(featureName)}Card, etc.)
+ * - Custom hooks (use${capitalize(featureName)}s, useCreate${capitalize(featureName)}, etc.)
  * - State management
  */
 
-import React, { useState, memo } from "react";
+import React, { useState } from "react";
 import { trpc } from "@/frontend/utils";
 import type {
-  ${capitalizedName},
-  Create${capitalizedName}Input,
-  Update${capitalizedName}Input,
+  ${capitalize(featureName)},
+  Create${capitalize(featureName)}Input,
+  Update${capitalize(featureName)}Input,
 } from "./types";
 
 // ===== HOOKS =====
-export function use${capitalizedName}s() {
+export const use${capitalize(featureName)}s = () => {
   return trpc.${featureName}.list.useQuery();
-}
+};
 
-export function use${capitalizedName}ById(id: string) {
-  return trpc.${featureName}.getById.useQuery({ id });
-}
+export const useCreate${capitalize(featureName)} = () => {
+  return trpc.${featureName}.create.useMutation();
+};
 
-export function useCreate${capitalizedName}() {
-  const utils = trpc.useUtils();
-  return trpc.${featureName}.create.useMutation({
-    onSuccess: () => {
-      utils.${featureName}.list.invalidate();
-    },
-  });
-}
+export const useUpdate${capitalize(featureName)} = () => {
+  return trpc.${featureName}.update.useMutation();
+};
 
-export function useUpdate${capitalizedName}() {
-  const utils = trpc.useUtils();
-  return trpc.${featureName}.update.useMutation({
-    onSuccess: () => {
-      utils.${featureName}.list.invalidate();
-    },
-  });
-}
-
-export function useDelete${capitalizedName}() {
-  const utils = trpc.useUtils();
-  return trpc.${featureName}.delete.useMutation({
-    onSuccess: () => {
-      utils.${featureName}.list.invalidate();
-    },
-  });
-}
+export const useDelete${capitalize(featureName)} = () => {
+  return trpc.${featureName}.delete.useMutation();
+};
 
 // ===== COMPONENTS =====
-
-// ${capitalizedName}Form Component
-interface ${capitalizedName}FormProps {
-  ${featureName}?: ${capitalizedName};
-  onSuccess: () => void;
-  onCancel: () => void;
-}
-
-export const ${capitalizedName}Form: React.FC<${capitalizedName}FormProps> = ({ ${featureName}, onSuccess, onCancel }) => {
-  const isEditing = !!${featureName};
-  const create${capitalizedName} = useCreate${capitalizedName}();
-  const update${capitalizedName} = useUpdate${capitalizedName}();
-
-  const [formData, setFormData] = useState({
-    name: ${featureName}?.name || "",
-    description: ${featureName}?.description || "",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+export const ${capitalize(featureName)}Form: React.FC<{
+  onSubmit: (data: Create${capitalize(featureName)}Input) => void;
+  isLoading?: boolean;
+}> = ({ onSubmit, isLoading = false }) => {
+  const [name, setName] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    if (isEditing) {
-      const updateData: Update${capitalizedName}Input = {
-        id: ${featureName}.id,
-        name: formData.name.trim(),
-        description: formData.description.trim() || undefined,
-      };
-
-      update${capitalizedName}.mutate(updateData, {
-        onSuccess: () => onSuccess(),
-        onError: (error) => setErrors({ general: error.message }),
-      });
-    } else {
-      const createData: Create${capitalizedName}Input = {
-        name: formData.name.trim(),
-        description: formData.description.trim() || undefined,
-      };
-
-      create${capitalizedName}.mutate(createData, {
-        onSuccess: () => onSuccess(),
-        onError: (error) => setErrors({ general: error.message }),
-      });
+    if (name.trim()) {
+      onSubmit({ name: name.trim() });
+      setName("");
     }
   };
 
-  const isLoading = create${capitalizedName}.isPending || update${capitalizedName}.isPending;
-
   return (
-    <div style={{ padding: '20px', maxWidth: '400px' }}>
-      <h3>{isEditing ? \`Edit \${${featureName}.name}\` : "Create New ${capitalizedName}"}</h3>
-      
-      {errors.general && (
-        <div style={{ color: 'red', padding: '8px', border: '1px solid red', borderRadius: '4px', marginBottom: '16px' }}>
-          {errors.general}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div>
-          <label>Name *</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Enter ${featureName} name"
-            required
-            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-          />
-          {errors.name && <span style={{ color: 'red', fontSize: '12px' }}>{errors.name}</span>}
-        </div>
-
-        <div>
-          <label>Description</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="Enter ${featureName} description"
-            rows={3}
-            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <button type="button" onClick={onCancel} style={{ padding: '8px 16px' }}>
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            disabled={isLoading} 
-            style={{ 
-              padding: '8px 16px', 
-              backgroundColor: '#007bff', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px' 
-            }}
-          >
-            {isLoading ? "Saving..." : isEditing ? \`Update \${${featureName}.name}\` : "Create ${capitalizedName}"}
-          </button>
-        </div>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium">
+          Name
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          placeholder="Enter ${featureName} name"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={isLoading || !name.trim()}
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+      >
+        {isLoading ? "Creating..." : "Create ${capitalize(featureName)}"}
+      </button>
+    </form>
   );
 };
 
-// ${capitalizedName}Card Component
-interface ${capitalizedName}CardProps {
-  ${featureName}: ${capitalizedName};
-  onEdit: (${featureName}: ${capitalizedName}) => void;
-}
-
-export const ${capitalizedName}Card: React.FC<${capitalizedName}CardProps> = ({ ${featureName}, onEdit }) => {
-  const delete${capitalizedName} = useDelete${capitalizedName}();
-
-  const handleDelete = () => {
-    if (confirm(\`Are you sure you want to delete "\${${featureName}.name}"?\`)) {
-      delete${capitalizedName}.mutate({ id: ${featureName}.id });
-    }
-  };
-
+export const ${capitalize(featureName)}Card: React.FC<{
+  ${featureName}: ${capitalize(featureName)};
+  onEdit?: (${featureName}: ${capitalize(featureName)}) => void;
+  onDelete?: (id: number) => void;
+}> = ({ ${featureName}, onEdit, onDelete }) => {
   return (
-    <div style={{
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '16px',
-      margin: '8px 0',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{${featureName}.name}</h3>
-          {${featureName}.description && (
-            <p style={{ margin: '0 0 8px 0', color: '#666' }}>{${featureName}.description}</p>
+    <div className="bg-white shadow rounded-lg p-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-gray-900">{${featureName}.name}</h3>
+        <div className="flex space-x-2">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(${featureName})}
+              className="text-blue-600 hover:text-blue-900"
+            >
+              Edit
+            </button>
           )}
-          <div style={{ fontSize: '12px', color: '#999' }}>
-            Created: {new Date(${featureName}.createdAt).toLocaleDateString()}
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={() => onEdit(${featureName})} 
-            style={{ padding: '4px 8px', fontSize: '12px' }}
-          >
-            Edit
-          </button>
-          <button 
-            onClick={handleDelete} 
-            style={{ 
-              padding: '4px 8px', 
-              fontSize: '12px', 
-              backgroundColor: '#dc3545', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px' 
-            }}
-          >
-            Delete
-          </button>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(${featureName}.id)}
+              className="text-red-600 hover:text-red-900"
+            >
+              Delete
+            </button>
+          )}
         </div>
       </div>
+      <p className="mt-2 text-sm text-gray-600">
+        Created: {new Date(${featureName}.createdAt).toLocaleDateString()}
+      </p>
     </div>
   );
 };
 
-// ${capitalizedName}List Component - Main component
-export const ${capitalizedName}List: React.FC = memo(() => {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editing${capitalizedName}, setEditing${capitalizedName}] = useState<${capitalizedName} | null>(null);
+export const ${capitalize(featureName)}Dashboard: React.FC = () => {
+  const { data: ${featureName}s, isLoading, error, refetch } = use${capitalize(featureName)}s();
+  const createMutation = useCreate${capitalize(featureName)}();
+  const deleteMutation = useDelete${capitalize(featureName)}();
 
-  const { data: ${featureName}s, isLoading } = use${capitalizedName}s();
-
-  const handleCreate = () => {
-    setShowCreateForm(false);
+  const handleCreate = async (input: Create${capitalize(featureName)}Input) => {
+    try {
+      await createMutation.mutateAsync(input);
+      refetch();
+    } catch (error) {
+      console.error("Failed to create ${featureName}:", error);
+    }
   };
 
-  const handleUpdate = () => {
-    setEditing${capitalizedName}(null);
+  const handleDelete = async (id: number) => {
+    if (confirm("Are you sure you want to delete this ${featureName}?")) {
+      try {
+        await deleteMutation.mutateAsync(id);
+        refetch();
+      } catch (error) {
+        console.error("Failed to delete ${featureName}:", error);
+      }
+    }
   };
 
-  const handleEdit = (${featureName}: ${capitalizedName}) => {
-    setEditing${capitalizedName}(${featureName});
-  };
+  if (isLoading) {
+    return <div className="p-6">Loading ${featureName}s...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">Error loading ${featureName}s: {error.message}</div>;
+  }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1>${capitalizedName} Manager</h1>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: showCreateForm ? '#dc3545' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          {showCreateForm ? "✕ Cancel" : "+ Add ${capitalizedName}"}
-        </button>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">${capitalize(featurePlural)}</h1>
       </div>
 
-      {showCreateForm && (
-        <div style={{ marginBottom: '24px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: 'white' }}>
-          <${capitalizedName}Form
-            onSuccess={handleCreate}
-            onCancel={() => setShowCreateForm(false)}
-          />
-        </div>
-      )}
-
-      {editing${capitalizedName} && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{
-            background: 'white', padding: '20px', borderRadius: '8px', 
-            maxWidth: '90vw', maxHeight: '90vh', overflow: 'auto'
-          }}>
-            <${capitalizedName}Form
-              ${featureName}={editing${capitalizedName}}
-              onSuccess={handleUpdate}
-              onCancel={() => setEditing${capitalizedName}(null)}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Create New ${capitalize(featureName)}</h2>
+            <${capitalize(featureName)}Form
+              onSubmit={handleCreate}
+              isLoading={createMutation.isPending}
             />
           </div>
         </div>
-      )}
 
-      <div>
-        {isLoading ? (
-          <div>⏳ Loading ${featureName}s...</div>
-        ) : !${featureName}s?.length ? (
-          <div style={{ textAlign: 'center', padding: '48px', color: '#666' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-            <h3>No ${featureName}s yet</h3>
-            <p>Create your first ${featureName} to get started!</p>
+        <div className="lg:col-span-2">
+          <div className="space-y-4">
+            {${featureName}s?.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No ${featurePlural} found. Create your first one!
+              </div>
+            ) : (
+              ${featureName}s?.map((${featureName}) => (
+                <${capitalize(featureName)}Card
+                  key={${featureName}.id}
+                  ${featureName}={${featureName}}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
           </div>
-        ) : (
-          ${featureName}s.map((${featureName}) => (
-            <${capitalizedName}Card key={${featureName}.id} ${featureName}={${featureName}} onEdit={handleEdit} />
-          ))
-        )}
+        </div>
       </div>
     </div>
   );
-});
-
-${capitalizedName}List.displayName = "${capitalizedName}List";
-
-// ===== EXPORTS =====
-export {
-  use${capitalizedName}s,
-  use${capitalizedName}ById,
-  useCreate${capitalizedName},
-  useUpdate${capitalizedName},
-  useDelete${capitalizedName},
-  ${capitalizedName}Form,
-  ${capitalizedName}Card,
-  ${capitalizedName}List,
 };
-
-// Default export for the main component
-export default ${capitalizedName}List;
-`;
-
-    // 4. Create routes.tsx - Route configuration
-    const routesContent = `/**
- * 🛣️ ${capitalizedName.toUpperCase()} ROUTES
+`,
+  },
+  {
+    name: "routes.tsx",
+    content: `/**
+ * 🛣️ ${featureName.toUpperCase()} ROUTES
  * Route configuration for ${featureName} feature
+ * 
+ * 🔗 INTEGRATION: Add to src/frontend/router.tsx:
+ * import { ${featureName}Routes } from '@/features/${featureName}/routes';
+ * 
+ * const routes = [
+ *   // ...existing routes...
+ *   ...${featureName}Routes,
+ * ];
  */
 
 import { lazy } from 'react';
 
-// Lazy load the ${capitalizedName}List for better performance
-const Lazy${capitalizedName}List = lazy(() => 
-  import('./frontend').then(module => ({ default: module.${capitalizedName}List }))
+// Lazy load the ${capitalize(featureName)}Dashboard for better performance
+const Lazy${capitalize(featureName)}Dashboard = lazy(() => 
+  import('./frontend').then(module => ({ default: module.${capitalize(featureName)}Dashboard }))
 );
 
 export const ${featureName}Routes = [
   {
-    path: "${featureName}s",
-    element: <Lazy${capitalizedName}List />,
+    path: "${featurePlural}",
+    element: <Lazy${capitalize(featureName)}Dashboard />,
   },
   // Future ${featureName}-related routes can be added here
   // {
-  //   path: "${featureName}s/:id",
-  //   element: <${capitalizedName}Detail />,
+  //   path: "${featurePlural}/:id",
+  //   element: <${capitalize(featureName)}Detail />,
   // },
 ];
-`;
+`,
+  },
+];
 
-    // 5. Create index.ts - Clean exports
-    const indexContent = `/**
- * 🎯 ${capitalizedName.toUpperCase()} FEATURE
- * Complete ${featureName} functionality
- * 
- * BACKEND: ${capitalizedName}Service, ${featureName}Router
- * FRONTEND: ${capitalizedName}List, ${capitalizedName}Form, use${capitalizedName}s
- * TYPES: ${capitalizedName}, Create${capitalizedName}Input, etc.
- */
+files.forEach((file) => {
+  fs.writeFileSync(path.join(featureDir, file.name), file.content);
+});
 
-// Backend exports
-export * from './backend';
-
-// Frontend exports  
-export * from './frontend';
-
-// Types exports
-export * from './types';
-
-// Routes exports
-export * from './routes';
-`;
-
-    // Write all files
-    await writeFile(join(featuresDir, "types.ts"), typesContent);
-    await writeFile(join(featuresDir, "backend.ts"), backendContent);
-    await writeFile(join(featuresDir, "frontend.tsx"), frontendContent);
-    await writeFile(join(featuresDir, "routes.tsx"), routesContent);
-    await writeFile(join(featuresDir, "index.ts"), indexContent);
-
-    console.log(`✅ LLM-Optimized feature "${featureName}" created successfully!`);
-    console.log(`📁 Location: ${featuresDir}`);
-    console.log(``);
-    console.log(`🎯 Created files:`);
-    console.log(`   📄 types.ts      - All schemas & types (150 lines)`);
-    console.log(`   📄 backend.ts    - All server logic (200 lines)`);
-    console.log(`   📄 frontend.tsx  - All client logic (300 lines)`);
-    console.log(`   📄 routes.tsx    - Route configuration`);
-    console.log(`   📄 index.ts      - Clean exports`);
-    console.log(``);
-    console.log(`🚀 Next steps:`);
-    console.log(`1. Add ${featureName}Router to src/backend/router.ts:`);
-    console.log(`   import { ${featureName}Router } from "@/features/${featureName}/backend";`);
-    console.log(`   // Add to appRouter: ${featureName}: ${featureName}Router,`);
-    console.log(``);
-    console.log(`2. Add database schema to src/backend/schemas.ts`);
-    console.log(`3. Implement the service methods in backend.ts`);
-    console.log(`4. Add routes to your main router configuration`);
-    console.log(``);
-    console.log(`🎸 Ready for LLM-powered vibecoding!`);
-
-  } catch (error) {
-    console.error(`❌ Error creating feature "${featureName}":`, error);
-    process.exit(1);
-  }
+// Automatically integrate the feature
+try {
+  await integrateFeature(featureName);
+  console.log(`✅ Feature "${featureName}" created and integrated successfully!`);
+} catch (error) {
+  console.log(`✅ Feature "${featureName}" created successfully!`);
+  console.error(`❌ Auto-integration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  console.log(`\n📋 MANUAL INTEGRATION REQUIRED:`);
 }
 
-createLLMOptimizedFeature();
+console.log(`\n🧪 TESTING:`);
+console.log(`   - Visit /${featurePlural} to see your new feature`);
+console.log(`   - Test CRUD operations in the dashboard`);
+console.log(`\n🚀 Happy coding!`);
+
+async function integrateFeature(featureName: string) {
+  // 1. Integrate backend router
+  await integrateBackendRouter(featureName);
+  
+  // 2. Integrate frontend routes
+  await integrateFrontendRoutes(featureName);
+  
+  console.log(`\n🔗 Auto-integration completed:`);
+  console.log(`   ✅ Backend router updated`);
+  console.log(`   ✅ Frontend routes updated`);
+  console.log(`   ✅ Navigation link added`);
+}
+
+async function integrateBackendRouter(featureName: string) {
+  const routerPath = path.join('src', 'backend', 'router.ts');
+  let content = fs.readFileSync(routerPath, 'utf-8');
+  
+  // Add import
+  const importLine = `import { ${featureName}Router } from "@/features/${featureName}/backend";`;
+  if (!content.includes(importLine)) {
+    const importInsertPoint = content.indexOf('import { todoRouter }');
+    if (importInsertPoint !== -1) {
+      const lines = content.split('\n');
+      const importLineIndex = lines.findIndex(line => line.includes('import { todoRouter }'));
+      lines.splice(importLineIndex + 1, 0, importLine);
+      content = lines.join('\n');
+    }
+  }
+  
+  // Add to router
+  const routerEntry = `  ${featureName}: ${featureName}Router,`;
+  if (!content.includes(routerEntry)) {
+    const routerInsertPoint = content.indexOf('  todo: todoRouter,');
+    if (routerInsertPoint !== -1) {
+      const lines = content.split('\n');
+      const routerLineIndex = lines.findIndex(line => line.includes('  todo: todoRouter,'));
+      lines.splice(routerLineIndex + 1, 0, routerEntry);
+      content = lines.join('\n');
+    }
+  }
+  
+  fs.writeFileSync(routerPath, content);
+}
+
+async function integrateFrontendRoutes(featureName: string) {
+  const routerPath = path.join('src', 'frontend', 'router.tsx');
+  let content = fs.readFileSync(routerPath, 'utf-8');
+  
+  // Add import
+  const importLine = `import { ${featureName}Routes } from "@/features/${featureName}/routes";`;
+  if (!content.includes(importLine)) {
+    const importInsertPoint = content.indexOf('import { todoRoutes }');
+    if (importInsertPoint !== -1) {
+      const lines = content.split('\n');
+      const importLineIndex = lines.findIndex(line => line.includes('import { todoRoutes }'));
+      lines.splice(importLineIndex + 1, 0, importLine);
+      content = lines.join('\n');
+    }
+  }
+  
+  // Add to routes
+  const routeEntry = `        ...${featureName}Routes,`;
+  if (!content.includes(routeEntry)) {
+    const routeInsertPoint = content.indexOf('        ...todoRoutes,');
+    if (routeInsertPoint !== -1) {
+      const lines = content.split('\n');
+      const routeLineIndex = lines.findIndex(line => line.includes('        ...todoRoutes,'));
+      lines.splice(routeLineIndex + 1, 0, routeEntry);
+      content = lines.join('\n');
+    }
+  }
+  
+  // Add navigation link
+  const navLink = `        <NavLink
+          to="/${featurePlural}"
+          style={({ isActive }) => ({
+            marginRight: "1rem",
+            textDecoration: "none",
+            color: isActive ? "#0056b3" : "#007bff",
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          ${capitalize(featurePlural)}
+        </NavLink>`;
+  
+  if (!content.includes(`to="/${featurePlural}"`)) {
+    const navInsertPoint = content.indexOf('        </NavLink>\n      </nav>');
+    if (navInsertPoint !== -1) {
+      const insertIndex = navInsertPoint;
+      content = content.slice(0, insertIndex) + navLink + '\n        ' + content.slice(insertIndex);
+    }
+  }
+  
+  fs.writeFileSync(routerPath, content);
+}
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
