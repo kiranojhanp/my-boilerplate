@@ -209,10 +209,20 @@ export const Navigation: React.FC = () => {
   return (
     <nav className="navigation">
       <div className="nav-container">
-        <NavLink to="/" className="nav-link nav-link--active">
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `nav-link ${isActive ? "nav-link--active" : ""}`
+          }
+        >
           Home
         </NavLink>
-        <NavLink to="/todos" className="nav-link">
+        <NavLink
+          to="/todos"
+          className={({ isActive }) =>
+            `nav-link ${isActive ? "nav-link--active" : ""}`
+          }
+        >
           Todos
         </NavLink>
       </div>

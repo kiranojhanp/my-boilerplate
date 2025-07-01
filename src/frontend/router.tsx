@@ -1,5 +1,10 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+  NavLink,
+} from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import { todoRoutes } from "@/features/todo/routes";
 
@@ -8,10 +13,28 @@ function AppLayout() {
   return (
     <div>
       <nav style={{ padding: "1rem", borderBottom: "1px solid #ccc" }}>
-        <a href="/" style={{ marginRight: "1rem" }}>
+        <NavLink
+          to="/"
+          style={({ isActive }) => ({
+            marginRight: "1rem",
+            textDecoration: "none",
+            color: isActive ? "#0056b3" : "#007bff",
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+          end
+        >
           Home
-        </a>
-        <a href="/todos">Todos</a>
+        </NavLink>
+        <NavLink
+          to="/todos"
+          style={({ isActive }) => ({
+            textDecoration: "none",
+            color: isActive ? "#0056b3" : "#007bff",
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          Todos
+        </NavLink>
       </nav>
       <main style={{ padding: "1rem" }}>
         <Outlet />
