@@ -6,7 +6,7 @@ import {
   TodoIdSchema,
   UpdateSubtaskInputSchema,
   StatsQuerySchema,
-} from "@/features/todo/types";
+} from "@/server/shared/db/zod-schemas";
 import { TodoService } from "./service";
 
 export const todoRouter = router({
@@ -35,7 +35,10 @@ export const todoRouter = router({
   update: loggedProcedure
     .input(UpdateTodoInputSchema)
     .mutation(async ({ input }) => {
-      const todo = await TodoService.updateTodo(input);
+      const todo = await TodoService.updateTodo({
+        ...input,
+        subtasks: undefined, // Add the missing subtasks field
+      });
       if (!todo) {
         throw new Error("Todo not found or update failed");
       }

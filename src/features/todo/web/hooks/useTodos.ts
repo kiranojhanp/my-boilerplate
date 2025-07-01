@@ -3,7 +3,8 @@ import type {
   ListTodosInput,
   CreateTodoInput,
   UpdateTodoInput,
-} from "@/features/todo/types";
+  UpdateSubtaskInput,
+} from "@/web/shared/types";
 
 export function useTodos(filters: Partial<ListTodosInput> = {}) {
   return trpc.todo.list.useQuery(filters);

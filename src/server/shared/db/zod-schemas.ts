@@ -197,7 +197,7 @@ export type TodoStats = {
   productivityScore: number;
 };
 
-// List response type
+// List response type (manual since it's a composed API response)
 export type TodoListResponse = {
   todos: TodoWithSubtasks[];
   pagination: {
@@ -207,11 +207,3 @@ export type TodoListResponse = {
     hasMore: boolean;
   };
 };
-
-// API response types
-export type CreateTodoResponse = TodoWithSubtasks;
-export type UpdateTodoResponse = TodoWithSubtasks;
-export type DeleteTodoResponse = { success: boolean; id: string };
-export type GetTodoResponse = TodoWithSubtasks;
-export type ListTodosResponse = TodoListResponse;
-export type GetStatsResponse = TodoStats;

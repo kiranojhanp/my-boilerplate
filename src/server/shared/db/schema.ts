@@ -66,9 +66,3 @@ export const subtasksRelations = relations(subtasks, ({ one }) => ({
     references: [todos.id],
   }),
 }));
-
-// Export types
-export type Todo = typeof todos.$inferSelect;
-export type NewTodo = typeof todos.$inferInsert;
-export type Subtask = typeof subtasks.$inferSelect;
-export type NewSubtask = typeof subtasks.$inferInsert;

@@ -11,22 +11,17 @@ import {
   asc,
 } from "drizzle-orm";
 import { db } from "@/server/shared/db";
-import {
-  todos,
-  subtasks,
-  type Todo,
-  type NewTodo,
-  type Subtask,
-  type NewSubtask,
-} from "@/server/shared/db/schema";
+import { todos, subtasks } from "@/server/shared/db/schema";
 import type {
+  Todo,
+  Subtask,
   CreateTodoInput,
   UpdateTodoInput,
   ListTodosInput,
   TodoStats,
   TodoListResponse,
   TodoWithSubtasks,
-} from "@/features/todo/types";
+} from "@/server/shared/db/zod-schemas";
 import { logger } from "@/server/shared/utils/logger";
 
 // Extended update input with subtasks for internal use
@@ -366,12 +361,7 @@ export class TodoService {
     const overdueResult = await db
       .select({ count: count() })
       .from(todos)
-      .where(
-        and(
-          eq(todos.status, "pending"),
-          lte(todos.dueDate, currentTime)
-        )
-      );
+      .where(and(eq(todos.status, "pending"), lte(todos.dueDate, currentTime)));
     const overdue = overdueResult[0]?.count || 0;
 
     // Helper functions to get counts

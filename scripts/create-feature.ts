@@ -29,18 +29,10 @@ async function createFeature() {
     await mkdir(join(featuresDir, "web", "hooks"), { recursive: true });
     await mkdir(join(featuresDir, "web", "styles"), { recursive: true });
 
-    // Create types.ts
+    // Create types.ts - simplified to only export schemas for server validation
     const typesContent = `import { z } from "zod";
 
-// ${capitalizedName} schemas
-export const ${capitalizedName}Schema = z.object({
-  id: z.string().min(1, "Invalid ${featureName} ID"),
-  name: z.string().min(1).max(200),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-// Input schemas
+// ${capitalizedName} input validation schemas (for server-side validation)
 export const Create${capitalizedName}InputSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
 });
@@ -54,41 +46,42 @@ export const ${capitalizedName}IdSchema = z.object({
   id: z.string().min(1, "${capitalizedName} ID is required"),
 });
 
-// Type exports
-export type ${capitalizedName} = z.infer<typeof ${capitalizedName}Schema>;
-export type Create${capitalizedName}Input = z.infer<typeof Create${capitalizedName}InputSchema>;
-export type Update${capitalizedName}Input = z.infer<typeof Update${capitalizedName}InputSchema>;
-export type ${capitalizedName}Id = z.infer<typeof ${capitalizedName}IdSchema>;
+// NOTE: All types are inferred from tRPC router on the client-side
+// See: @/web/shared/types for tRPC-inferred types
 `;
 
     // Create server/service.ts
     const serviceContent = `import { db } from "@/server/shared/db";
-import type {
-  Create${capitalizedName}Input,
-  Update${capitalizedName}Input,
-  ${capitalizedName},
+import {
+  Create${capitalizedName}InputSchema,
+  Update${capitalizedName}InputSchema,
 } from "@/features/${featureName}/types";
+import type { z } from "zod";
 import { logger } from "@/server/shared/utils/logger";
 
+// Use tRPC-inferred types for consistency
+type Create${capitalizedName}Input = z.infer<typeof Create${capitalizedName}InputSchema>;
+type Update${capitalizedName}Input = z.infer<typeof Update${capitalizedName}InputSchema>;
+
 export class ${capitalizedName}Service {
-  static async create${capitalizedName}(data: Create${capitalizedName}Input): Promise<${capitalizedName}> {
+  static async create${capitalizedName}(data: Create${capitalizedName}Input) {
     // TODO: Implement create logic
     logger.info(\`Creating ${featureName} with name: \${data.name}\`);
     throw new Error("Not implemented");
   }
 
-  static async get${capitalizedName}ById(id: string): Promise<${capitalizedName} | null> {
+  static async get${capitalizedName}ById(id: string) {
     // TODO: Implement get by id logic
     throw new Error("Not implemented");
   }
 
-  static async update${capitalizedName}(data: Update${capitalizedName}Input): Promise<${capitalizedName} | null> {
+  static async update${capitalizedName}(data: Update${capitalizedName}Input) {
     // TODO: Implement update logic
     logger.info(\`Updating ${featureName} with ID: \${data.id}\`);
     throw new Error("Not implemented");
   }
 
-  static async delete${capitalizedName}(id: string): Promise<boolean> {
+  static async delete${capitalizedName}(id: string): Promise<{ success: boolean; id: string }> {
     // TODO: Implement delete logic
     logger.info(\`Deleting ${featureName} with ID: \${id}\`);
     throw new Error("Not implemented");
