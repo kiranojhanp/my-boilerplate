@@ -28,7 +28,7 @@ export default defineConfig(({ command, mode }) => {
     plugins,
 
     // Entry point for the app
-    root: "src/web",
+    root: "src/frontend",
 
     // Public directory for static assets
     publicDir: "public",
@@ -39,7 +39,7 @@ export default defineConfig(({ command, mode }) => {
       emptyOutDir: true,
       rollupOptions: {
         input: {
-          main: resolve(__dirname, "src/web/index.html"),
+          main: resolve(__dirname, "src/frontend/index.html"),
         },
         output: {
           // Manual chunk splitting for better caching and loading

@@ -1,7 +1,20 @@
-// Feature exports - provides a clean API for the entire todo feature
+/**
+ * 🎯 TODO FEATURE
+ * Complete todo functionality
+ * 
+ * BACKEND: TodoService, todoRouter
+ * FRONTEND: TodoDashboard, TodoForm, TodoCard, useTodos, useCreateTodo  
+ * TYPES: Todo, CreateTodoInput, etc.
+ */
 
-// Server exports (for server-side usage)
-export * from "./server";
+// Backend exports
+export * from './backend'
 
-// Web exports (for client-side usage)
-export * from "./web";
+// Frontend exports  
+export * from './frontend'
+
+// Types exports
+export * from './types'
+
+// Routes exports (if needed)
+// export * from './routes'
