@@ -25,6 +25,7 @@ import type {
   ListTodosInput,
   TodoStats,
   TodoListResponse,
+  TodoWithSubtasks,
 } from "@/features/todo/types";
 import { logger } from "@/server/shared/utils/logger";
 
@@ -158,12 +159,12 @@ export class TodoService {
           ...todo,
           tags: todo.tags || [],
           subtasks: todoSubtasks,
-        } as Todo & { subtasks: Subtask[] };
+        } satisfies TodoWithSubtasks;
       })
     );
 
     return {
-      todos: todosWithSubtasks as any, // Type casting due to database schema differences
+      todos: todosWithSubtasks,
       pagination: {
         total: totalCount,
         limit,
@@ -360,6 +361,19 @@ export class TodoService {
         totalTime / completedTodos.length / (1000 * 60 * 60); // Convert to hours
     }
 
+    // Calculate overdue todos (not completed and past due date)
+    const currentTime = new Date();
+    const overdueResult = await db
+      .select({ count: count() })
+      .from(todos)
+      .where(
+        and(
+          eq(todos.status, "pending"),
+          lte(todos.dueDate, currentTime)
+        )
+      );
+    const overdue = overdueResult[0]?.count || 0;
+
     // Helper functions to get counts
     const getStatusCount = (status: string) =>
       statusCounts.find((s) => s.status === status)?.count || 0;
@@ -378,6 +392,7 @@ export class TodoService {
       pending: getStatusCount("pending"),
       inProgress: getStatusCount("in_progress"),
       cancelled: getStatusCount("cancelled"),
+      overdue,
       byPriority: {
         low: getPriorityCount("low"),
         medium: getPriorityCount("medium"),

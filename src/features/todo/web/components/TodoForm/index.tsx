@@ -92,9 +92,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         description: formData.description.trim() || undefined,
         priority: formData.priority,
         category: formData.category,
-        dueDate: formData.dueDate
-          ? new Date(formData.dueDate).toISOString()
-          : undefined,
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
         tags: tagsArray,
         estimatedMinutes: formData.estimatedMinutes
           ? parseInt(formData.estimatedMinutes)
@@ -123,9 +121,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
         description: formData.description.trim() || undefined,
         priority: formData.priority,
         category: formData.category,
-        dueDate: formData.dueDate
-          ? new Date(formData.dueDate).toISOString()
-          : undefined,
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
         tags: tagsArray,
         estimatedMinutes: formData.estimatedMinutes
           ? parseInt(formData.estimatedMinutes)
