@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { visualizer } from "rollup-plugin-visualizer";
+import { compression } from "vite-plugin-compression2";
+import { dynamicChunkPlugin } from "vite-plugin-dynamic-chunk";
 import { resolve } from "path";
 import env from "./src/backend/env";
 
@@ -25,6 +27,34 @@ export default defineConfig(({ command, mode }) => {
     );
   }
 
+  // Add compression for production builds  
+  if (command === "build") {
+    plugins.push(
+      // Dynamic chunk splitting for better optimization
+      dynamicChunkPlugin({
+        dependencySplitOption: {
+          // Core React libraries (complement your manual chunks)
+          react: ["react", "react-dom"],
+          "react-router": ["react-router-dom"],
+          // tRPC ecosystem
+          trpc: ["@trpc/client", "@trpc/react-query"],
+          // React Query
+          "react-query": ["@tanstack/react-query"],
+          // Utility libraries
+          utils: ["superjson"],
+        },
+        splitDynamicImportDependency: true, // Split dynamic imports
+        experimentalMinChunkSize: 1000, // Merge small chunks (1KB threshold)
+      }),
+      compression({
+        algorithms: ["gzip", "brotliCompress"],
+        threshold: 1024, // Only compress files larger than 1KB
+        deleteOriginalAssets: false, // Keep original files for fallback
+        skipIfLargerOrEqual: true, // Skip if compressed file is larger
+      })
+    );
+  }
+
   return {
     plugins,
 
@@ -43,18 +73,14 @@ export default defineConfig(({ command, mode }) => {
           main: resolve(__dirname, "src/frontend/index.html"),
         },
         output: {
-          // Manual chunk splitting for better caching and loading
-          manualChunks: {
-            // React core (keep together as they're often updated together)
-            react: ["react", "react-dom"],
-            // React Router (large dependency, separate for better caching)
-            "react-router": ["react-router-dom"],
-            // tRPC client libraries
-            "trpc-client": ["@trpc/client"],
-            // React Query and tRPC React integration
-            "react-query": ["@tanstack/react-query", "@trpc/react-query"],
-            // Utility libraries
-            utils: ["superjson"],
+          // Let dynamic chunk plugin handle most of the chunking
+          // Keep only essential manual chunks that need specific control
+          manualChunks: (id) => {
+            // Vendor chunks for node_modules (fallback for dynamic plugin)
+            if (id.includes('node_modules')) {
+              // Let the dynamic chunk plugin handle the splitting
+              return undefined;
+            }
           },
           // Optimize chunk file names
           chunkFileNames: "assets/[name].[hash].js",

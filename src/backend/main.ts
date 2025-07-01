@@ -1,5 +1,6 @@
 import { appRouter } from "@/backend/router";
 import { logger } from "@/backend/utils";
+import { StaticFileHandler } from "@/backend/static-handler";
 import { createBunServeHandler } from "trpc-bun-adapter";
 import { initializeDatabase, closeDatabase } from "@/backend/database";
 import env from "@/backend/env";
@@ -10,13 +11,17 @@ await initializeDatabase();
 // Only build client in production
 const isProduction = env.NODE_ENV === "production";
 if (isProduction) {
-  logger.info("Building client...");
-  Bun.spawnSync(["bun", "run", "build:all"]);
+  logger.info("Production mode: Expecting pre-built client in ./dist/web");
 } else {
   logger.info(
     "Development mode: Skipping client build, expecting Vite dev server"
   );
 }
+
+// Initialize static file handler for production
+const staticHandler = isProduction
+  ? new StaticFileHandler({ basePath: "./dist/web" })
+  : null;
 
 // Create simplified tRPC handler - Bun handles static files automatically
 const trpcHandler = createBunServeHandler(
@@ -40,19 +45,12 @@ const trpcHandler = createBunServeHandler(
     async fetch(request, server) {
       const url = new URL(request.url);
 
-      // Only serve static files in production
-      // In development, Vite dev server handles the frontend
+      // Handle static files in production
       if (isProduction && !url.pathname.startsWith("/trpc")) {
-        const staticFile = Bun.file(
-          `./dist/web${url.pathname === "/" ? "/index.html" : url.pathname}`
-        );
-
-        if (await staticFile.exists()) {
-          return new Response(staticFile);
+        const staticResponse = await staticHandler?.handleRequest(request);
+        if (staticResponse) {
+          return staticResponse;
         }
-
-        // SPA fallback - serve index.html for client-side routing
-        return new Response(Bun.file("./dist/web/index.html"));
       }
 
       // In development, non-tRPC routes should return 404
