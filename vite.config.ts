@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { visualizer } from "rollup-plugin-visualizer";
 import { resolve } from "path";
+import env from "./src/backend/env";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -44,16 +45,14 @@ export default defineConfig(({ command, mode }) => {
         output: {
           // Manual chunk splitting for better caching and loading
           manualChunks: {
-            // Vendor chunk for external dependencies
-            vendor: ["react", "react-dom"],
-            // tRPC and query related
-            trpc: [
-              "@trpc/client",
-              "@trpc/react-query",
-              "@tanstack/react-query",
-            ],
-            // Router related
-            router: ["react-router-dom"],
+            // React core (keep together as they're often updated together)
+            react: ["react", "react-dom"],
+            // React Router (large dependency, separate for better caching)
+            "react-router": ["react-router-dom"],
+            // tRPC client libraries
+            "trpc-client": ["@trpc/client"],
+            // React Query and tRPC React integration
+            "react-query": ["@tanstack/react-query", "@trpc/react-query"],
             // Utility libraries
             utils: ["superjson"],
           },
@@ -77,23 +76,29 @@ export default defineConfig(({ command, mode }) => {
           moduleSideEffects: false,
         },
       },
-      // Generate source maps for production debugging
-      sourcemap: true,
-      // Optimize chunks
-      chunkSizeWarningLimit: 500, // Reduced from 1000
+      // Generate source maps for production debugging (but smaller)
+      sourcemap: "hidden", // Don't include source maps in final bundle
+      // Optimize chunks more aggressively
+      chunkSizeWarningLimit: 300, // Lower warning limit to catch large chunks
       // Additional optimizations
       minify: "terser",
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console.logs in production
+          drop_debugger: true,
+        },
+      },
     },
 
     // Development server configuration
     server: {
-      port: parseInt(process.env.VITE_PORT || "5173"),
+      port: env.VITE_PORT,
       strictPort: true,
       cors: true,
       proxy: {
         // Proxy API calls to the backend server
         "/trpc": {
-          target: `http://localhost:${process.env.PORT || 3000}`,
+          target: `http://localhost:${env.PORT}`,
           changeOrigin: true,
           ws: true, // Enable WebSocket proxying for tRPC subscriptions
         },

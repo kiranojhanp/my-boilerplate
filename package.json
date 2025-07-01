@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "concurrently \"bun run --watch src/backend/main.ts\" \"vite\"",
     "build": "NODE_ENV=production bun run scripts/build.ts",
+    "build:analyze": "NODE_ENV=production ANALYZE=true bun run scripts/build.ts",
     "start": "NODE_ENV=production bun run scripts/start.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

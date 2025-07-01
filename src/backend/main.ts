@@ -2,12 +2,13 @@ import { appRouter } from "@/backend/router";
 import { logger } from "@/backend/utils";
 import { createBunServeHandler } from "trpc-bun-adapter";
 import { initializeDatabase, closeDatabase } from "@/backend/database";
+import env from "@/backend/env";
 
 // Initialize database
 await initializeDatabase();
 
 // Only build client in production
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = env.NODE_ENV === "production";
 if (isProduction) {
   logger.info("Building client...");
   Bun.spawnSync(["bun", "run", "build:all"]);
@@ -27,7 +28,7 @@ const trpcHandler = createBunServeHandler(
       ? (_opts: any) => ({
           status: 200,
           headers: {
-            "Access-Control-Allow-Origin": `http://localhost:${process.env.VITE_PORT || 5173}`,
+            "Access-Control-Allow-Origin": `http://localhost:${env.VITE_PORT}`,
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
           },
@@ -35,7 +36,7 @@ const trpcHandler = createBunServeHandler(
       : undefined,
   },
   {
-    port: process.env.PORT || 3000,
+    port: env.PORT,
     async fetch(request, server) {
       const url = new URL(request.url);
 
@@ -84,10 +85,10 @@ if (isProduction) {
     `⚡ Development mode: Frontend should be served by Vite dev server`
   );
   logger.info(
-    `📝 Run 'bun run dev:web' to start Vite dev server on http://localhost:${process.env.VITE_PORT || 5173}`
+    `📝 Run 'bun dev' to start both servers on http://localhost:${env.VITE_PORT}`
   );
   logger.info(
-    `🔓 CORS enabled for Vite dev server (http://localhost:${process.env.VITE_PORT || 5173})`
+    `🔓 CORS enabled for Vite dev server (http://localhost:${env.VITE_PORT})`
   );
 }
 
