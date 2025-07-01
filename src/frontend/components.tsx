@@ -4,6 +4,7 @@
  */
 
 import React from "react";
+import { NavLink } from "react-router-dom";
 
 // Button component with semantic styling
 export interface ButtonProps
@@ -208,12 +209,12 @@ export const Navigation: React.FC = () => {
   return (
     <nav className="navigation">
       <div className="nav-container">
-        <a href="/" className="nav-link nav-link--active">
+        <NavLink to="/" className="nav-link nav-link--active">
           Home
-        </a>
-        <a href="/todos" className="nav-link">
+        </NavLink>
+        <NavLink to="/todos" className="nav-link">
           Todos
-        </a>
+        </NavLink>
       </div>
     </nav>
   );
