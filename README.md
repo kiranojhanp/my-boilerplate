@@ -1,184 +1,173 @@
-# Simple Todo API
+# 🎯 LLM-Optimized Full-Stack TypeScript API
 
-A simple Todo API built with **Bun**, **TypeScript**, **tRPC**, **Zod**, and **SuperJSON**.
+A **production-ready**, **LLM-friendly** codebase built with **Bun**, **TypeScript**, **tRPC**, and **React**. Optimized for AI-assisted development with consolidated feature structure.
 
-## 🚀 Features
+## 🎯 **Why This Boilerplate Exists**
 
-- **⚡ Bun Runtime**: Lightning-fast JavaScript runtime
-- **📝 Type Safety**: Full-stack type safety with tRPC and TypeScript
-- **✅ Validation**: Input validation with Zod schemas
-- **📦 SuperJSON**: Enhanced JSON serialization (Date, Map, Set, BigInt, RegExp)
-- ** Logging**: Structured logging with Winston
-- **📝 Todo Management**: Complete CRUD operations for todos with priorities, categories, and subtasks
+This boilerplate fills a specific gap in the TypeScript ecosystem. While building projects, I found myself choosing between:
 
-## 📦 Installation
+- **Full-stack frameworks** like Next.js, Remix, or SvelteKit - which are excellent but come with their own conventions and constraints
+- **SPA frameworks** like React Router - which require separate API setup and deployment complexity
+
+**The Missing Piece**: A simple way to run both SPA and API in a **single process** without committing to a full-stack framework's architecture.
+
+This boilerplate provides exactly that - a **standalone TypeScript API** with an **embedded SPA frontend**, both running in one process while maintaining clear separation of concerns.
+
+**LLM-First Design**: While creating this, I focused on **LLM vibecoding** - making the codebase as readable and predictable as possible for AI-assisted development. The result is a structure that's not only great for humans but excels at AI pair programming.
+
+> 🤖 **For LLMs**: See `llm.txt` in the root for a complete development guide.
+
+## 🚀 **Quick Start**
 
 ```bash
+# Install dependencies
 bun install
-```
 
-## 🏃‍♂️ Running the Server
-
-### Development
-
-```bash
-bun run dev
-```
-
-### Production
-
-```bash
-bun run start
-```
-
-### Build
-
-```bash
-bun run build
-```
-
-## 🌍 Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
+# Set up environment
 cp .env.example .env
+
+# Start development
+bun run dev:full
 ```
 
-Key variables:
+Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
-- `PORT`: Server port (default: 3000)
-- `NODE_ENV`: Environment (development/production)
-- `CORS_ORIGIN`: CORS allowed origins
+## 📦 **Tech Stack**
 
-## 🔧 API Endpoints
+### **Runtime & Language**
+- **Bun** - Lightning-fast JavaScript runtime and package manager
+- **TypeScript** - Full type safety across the stack
 
-### Base Endpoints
+### **Backend**
+- **tRPC** - End-to-end typesafe APIs
+- **Drizzle ORM** - Type-safe database operations with auto-generated Zod schemas
+- **SQLite** - Local database (easily swappable)
+- **Zod** - Runtime validation and type inference
+- **Winston** - Structured logging
 
-- `GET /` - API information
-- `GET /health` - Health check
+### **Frontend**
+- **React 18** - Modern React with hooks and concurrent features
+- **React Router** - Client-side routing
+- **TanStack Query** - Data fetching and caching (via tRPC)
+- **CSS Custom Properties** - Design system without frameworks
 
-### tRPC Endpoints
+### **Development**
+- **Vite** - Fast frontend build tool
+- **TypeScript Strict Mode** - Maximum type safety
+- **Hot Reload** - Backend and frontend live reloading
 
-#### � Todo Management (`/trpc/todo.*`)
-
-- `POST /trpc/todo.create` - Create new todo
-- `GET /trpc/todo.getById` - Get todo by ID
-- `GET /trpc/todo.list` - List todos with filtering/sorting
-- `POST /trpc/todo.update` - Update todo
-- `POST /trpc/todo.delete` - Delete todo
-- `GET /trpc/todo.getStats` - Get todo statistics
-
-## � Example Usage
-
-### 1. Create a Todo
+## 🔧 **Available Scripts**
 
 ```bash
-curl -X POST http://localhost:3000/trpc/todo.create \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": {
-      "title": "Learn tRPC",
-      "description": "Build a simple API with tRPC",
-      "priority": "high",
-      "category": "learning",
-      "tags": ["typescript", "trpc"],
-      "estimatedMinutes": 120
-    }
-  }'
+# Development
+bun run dev              # Backend server (http://localhost:3000)
+bun run dev:web          # Frontend dev server (http://localhost:5173)  
+bun run dev:full         # Both servers concurrently
+
+# Building
+bun run build            # Build backend
+bun run build:web        # Build frontend
+bun run build:all        # Build both
+
+# Database
+bun run db:generate      # Generate Drizzle migrations
+bun run db:migrate       # Run migrations
+bun run db:studio        # Open Drizzle Studio
+
+# Feature Development
+bun run create-feature <name>  # Generate new feature scaffold
+
+# Code Quality
+bun run lint             # ESLint
+bun run format           # Prettier
+bun test                 # Run tests
 ```
 
-### 2. List Todos
+## 🌍 **Environment Variables**
+
+Copy `.env.example` to `.env`:
 
 ```bash
-curl "http://localhost:3000/trpc/todo.list?input={}"
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database  
+DATABASE_URL="file:./todo.db"
+
+# CORS (optional)
+CORS_ORIGIN="http://localhost:5173"
 ```
 
-### 3. Get Todo Statistics
+## 📊 **Example: Todo Feature API**
 
-```bash
-curl "http://localhost:3000/trpc/todo.getStats"
+### **tRPC Endpoints**
+
+The todo feature exposes these endpoints via tRPC:
+
+- `todo.create` - Create new todo
+- `todo.list` - List todos with filtering/sorting  
+- `todo.getById` - Get todo by ID
+- `todo.update` - Update todo
+- `todo.delete` - Delete todo
+- `todo.getStats` - Get todo statistics
+
+### **Usage Examples**
+
+```typescript
+// Frontend usage with tRPC hooks
+const { data: todos } = trpc.todo.list.useQuery({ priority: 'high' })
+const createTodo = trpc.todo.create.useMutation()
+
+// Create a new todo
+await createTodo.mutateAsync({
+  title: "Learn tRPC",
+  description: "Build a simple API with tRPC", 
+  priority: "high",
+  category: "learning"
+})
 ```
 
-## 🛠️ Technology Stack
-
-### Core
-
-- **[Bun](https://bun.sh)** - JavaScript runtime and package manager
-- **[TypeScript](https://www.typescriptlang.org/)** - Type safety
-- **[tRPC](https://trpc.io/)** - End-to-end typesafe APIs
-
-### Validation & Serialization
-
-- **[Zod](https://zod.dev/)** - TypeScript-first schema validation
-- **[SuperJSON](https://github.com/blitz-js/superjson)** - Enhanced JSON serialization
-
-### Logging
-
-- **[winston](https://github.com/winstonjs/winston)** - Structured logging
-
-## 📋 Project Structure
+## 📁 **Project Structure**
 
 ```
-src/
-├── index.ts                 # Main server file
-├── shared/
-│   ├── trpc/
-│   │   └── trpc.ts          # tRPC setup with SuperJSON
-│   └── utils/
-│       └── logger.ts        # Logging configuration
-├── trpc/
-│   └── router.ts            # Main router
-└── features/
-    └── todo/
-        ├── index.ts         # Todo feature exports
-        ├── router.ts        # Todo routes
-        ├── service.ts       # Todo business logic
-        └── schemas.ts       # Todo validation schemas
+basic-api/
+├── src/
+│   ├── backend/           🖥️  Server infrastructure
+│   │   ├── main.ts        # Server entry point
+│   │   ├── router.ts      # Main tRPC router
+│   │   ├── database.ts    # Database setup
+│   │   ├── schemas.ts     # Database schemas
+│   │   ├── trpc.ts        # tRPC configuration
+│   │   └── utils.ts       # Server utilities
+│   ├── frontend/          🌐  Client infrastructure  
+│   │   ├── index.html     # HTML template
+│   │   ├── app.tsx        # React app root
+│   │   ├── router.tsx     # React Router setup
+│   │   ├── components.tsx # Global components
+│   │   ├── styles.css     # Design system
+│   │   └── utils.ts       # Frontend utilities
+│   └── features/          🎯  Business features
+│       └── todo/          # Example feature
+│           ├── types.ts   # Schemas & types (Drizzle + Zod)
+│           ├── backend.ts # Server logic
+│           ├── frontend.tsx # Client logic
+│           ├── routes.tsx # Route config
+│           └── index.ts   # Exports
+├── scripts/
+│   └── create-feature.ts  # Feature generator
+├── docs/                  # Documentation
+├── drizzle/              # Database migrations
+├── llm.txt               # LLM development guide
+└── dist/                 # Build output
 ```
 
-## 📊 SuperJSON Features
+## 🎸 **Ready for LLM-Powered Development!**
 
-SuperJSON enhances the API with support for:
+This codebase is optimized for AI assistance. LLMs can:
+- ✅ Understand entire features in single context windows
+- ✅ Generate new features using the established patterns
+- ✅ Modify existing features without breaking dependencies
+- ✅ Navigate the codebase easily with predictable structure
 
-- **Date objects**: Automatically serialized/deserialized
-- **Map and Set**: JavaScript collections preserved
-- **BigInt**: Large integers supported
-- **RegExp**: Regular expressions maintained
-- **undefined**: Preserved (unlike standard JSON)
-
-Example response with SuperJSON:
-
-```json
-{
-  "timestamp": "2024-01-01T00:00:00.000Z", // Date object
-  "bigNumber": "123456789012345678901234567890n", // BigInt
-  "tags": ["tag1", "tag2"], // Set becomes array with metadata
-  "metadata": [
-    ["key", "value"],
-    ["type", "object"]
-  ] // Map becomes array
-}
-```
-
-## 🚀 Performance
-
-- **Bun Runtime**: Up to 4x faster than Node.js
-- **tRPC**: Minimal runtime overhead
-- **SuperJSON**: Enhanced serialization without performance penalty
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
----
-
-**Built with ❤️ using Bun and modern TypeScript**
+**Start coding with AI assistance - the structure is designed for excellent LLM support!** 🚀

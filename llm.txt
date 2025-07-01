@@ -1,0 +1,190 @@
+# LLM Development Guide
+
+## Architecture Overview
+```
+src/
+├── backend/     # Server infrastructure
+├── frontend/    # Client infrastructure  
+├── features/    # Business features (5-file pattern)
+```
+
+## 5-File Feature Pattern
+Every feature follows this exact structure:
+```
+src/features/{name}/
+├── types.ts      # Zod schemas & TypeScript types
+├── backend.ts    # Service class + tRPC router
+├── frontend.tsx  # React components + hooks
+├── routes.tsx    # Route configuration
+└── index.ts      # Exports
+```
+
+## Creating Features
+```bash
+bun run create-feature invoice  # Generates scaffold
+```
+
+## Integration Steps
+1. Add router to `src/backend/router.ts`:
+   ```ts
+   import { invoiceRouter } from '@/features/invoice/backend'
+   export const appRouter = router({ 
+     todo: todoRouter,
+     invoice: invoiceRouter  // Add here
+   })
+   ```
+
+2. Add routes to `src/frontend/router.tsx`:
+   ```ts
+   import { invoiceRoutes } from '@/features/invoice/routes'
+   const routes = [...todoRoutes, ...invoiceRoutes]
+   ```
+
+## File Templates
+
+### types.ts
+```ts
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+import { z } from 'zod'
+import { items } from '@/backend/schemas'
+
+// Auto-generated schemas from Drizzle tables
+export const ItemSelectSchema = createSelectSchema(items)
+export const ItemInsertSchema = createInsertSchema(items)
+
+// Input schemas for API operations
+export const CreateItemInputSchema = ItemInsertSchema.omit({ id: true, createdAt: true })
+export const UpdateItemInputSchema = CreateItemInputSchema.partial()
+
+// TypeScript types inferred from schemas
+export type Item = z.infer<typeof ItemSelectSchema>
+export type CreateItemInput = z.infer<typeof CreateItemInputSchema>
+export type UpdateItemInput = z.infer<typeof UpdateItemInputSchema>
+```
+
+### backend.ts
+```ts
+import { router, loggedProcedure } from '@/backend/trpc'
+import { db } from '@/backend/database'
+import { CreateItemInputSchema, UpdateItemInputSchema } from './types'
+
+export class ItemService {
+  static async create(data: CreateItemInput): Promise<Item> {
+    // Database operations
+  }
+  
+  static async list(): Promise<Item[]> {
+    // Query logic
+  }
+}
+
+export const itemRouter = router({
+  create: loggedProcedure
+    .input(CreateItemInputSchema)
+    .mutation(({ input }) => ItemService.create(input)),
+    
+  list: loggedProcedure
+    .query(() => ItemService.list())
+})
+```
+
+### frontend.tsx
+```tsx
+import React, { useState } from 'react'
+import { trpc } from '@/frontend/utils'
+import { Button, Input, Card } from '@/frontend/components'
+
+export function useItems() {
+  return trpc.item.list.useQuery()
+}
+
+export function useCreateItem() {
+  const utils = trpc.useUtils()
+  return trpc.item.create.useMutation({
+    onSuccess: () => utils.item.list.invalidate()
+  })
+}
+
+export const ItemForm: React.FC = () => {
+  const [name, setName] = useState('')
+  const createItem = useCreateItem()
+  
+  return (
+    <Card>
+      <Input value={name} onChange={(e) => setName(e.target.value)} />
+      <Button onClick={() => createItem.mutate({ name })}>Create</Button>
+    </Card>
+  )
+}
+
+export const ItemList: React.FC = () => {
+  const { data: items } = useItems()
+  return (
+    <div>
+      {items?.map(item => <div key={item.id}>{item.name}</div>)}
+    </div>
+  )
+}
+
+export default ItemList
+```
+
+### routes.tsx
+```tsx
+import { lazy } from 'react'
+const ItemList = lazy(() => import('./frontend'))
+
+export const itemRoutes = [
+  { path: '/items', element: <ItemList /> }
+]
+```
+
+### index.ts
+```ts
+export * from './types'
+export * from './backend'  
+export * from './frontend'
+export * from './routes'
+```
+
+## Available Components
+```tsx
+// From @/frontend/components
+<Button variant="primary|secondary|danger" size="sm|md|lg">Text</Button>
+<Input label="Label" error={error} />
+<Card padding="sm|md|lg">Content</Card>
+<Modal isOpen={bool} title="Title" onClose={fn}>Content</Modal>
+<Badge variant="success|warning|danger">Text</Badge>
+<LoadingSpinner />
+<ErrorAlert message="Error" />
+```
+
+## Database Schema (Add to src/backend/schemas.ts)
+```ts
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+
+export const items = sqliteTable('items', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
+})
+```
+
+## Development Commands
+```bash
+bun run dev:full        # Start both servers
+bun run create-feature  # Generate new feature
+bun run db:generate     # Generate migrations
+bun run db:migrate      # Run migrations
+```
+
+## Key Patterns
+- All feature code in 5 files per feature
+- Auto-generated Zod schemas from Drizzle tables (drizzle-zod)
+- TypeScript types inferred from schemas (single source of truth)
+- tRPC for type-safe API calls
+- React Query for caching (via tRPC)
+- Global components for UI consistency
+- Lazy-loaded routes for performance
+
+## Example: See src/features/todo/ for complete reference implementation
