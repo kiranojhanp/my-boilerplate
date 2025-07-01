@@ -26,11 +26,20 @@ bun install
 # Set up environment
 cp .env.example .env
 
-# Start development
+# Start development (with fast HMR)
 bun run dev:full
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see the app.
+**Development URLs:**
+- Frontend (Vite): [http://localhost:5173](http://localhost:5173) 
+- Backend API: [http://localhost:3000/trpc](http://localhost:3000/trpc)
+
+**Production:**
+```bash
+# Build and start production server
+bun run build:all && bun run start
+```
+- Full app: [http://localhost:3000](http://localhost:3000)
 
 ## 📦 **Tech Stack**
 
@@ -59,10 +68,14 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 ## 🔧 **Available Scripts**
 
 ```bash
-# Development
-bun run dev              # Backend server (http://localhost:3000)
-bun run dev:web          # Frontend dev server (http://localhost:5173)  
-bun run dev:full         # Both servers concurrently
+# Development (Fast HMR with Vite)
+bun run dev              # Backend server only (http://localhost:3000)
+bun run dev:web          # Frontend dev server only (http://localhost:5173)  
+bun run dev:full         # Both servers concurrently (recommended)
+
+# Production
+bun run start            # Production server with built frontend
+bun run start:dev        # Development server without NODE_ENV=production
 
 # Building
 bun run build            # Build backend

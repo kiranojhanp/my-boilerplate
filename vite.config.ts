@@ -87,13 +87,13 @@ export default defineConfig(({ command, mode }) => {
 
     // Development server configuration
     server: {
-      port: 5173,
+      port: parseInt(process.env.VITE_PORT || "5173"),
       strictPort: true,
       cors: true,
       proxy: {
         // Proxy API calls to the backend server
         "/trpc": {
-          target: "http://localhost:3000",
+          target: `http://localhost:${process.env.PORT || 3000}`,
           changeOrigin: true,
           ws: true, // Enable WebSocket proxying for tRPC subscriptions
         },
